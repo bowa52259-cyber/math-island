@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>森林乘法冒險島 V6.1 兌獎紀錄版 🌲🌟</title>
+    <title>森林乘法冒險島 V6.3 遊戲音效雙人雲端版 🌲🌟</title>
     <style>
         :root {
             --primary-color: #799F7A; /* 森林綠 */
@@ -19,9 +19,17 @@
         header { text-align: center; margin-bottom: 15px; }
         h1 { color: var(--primary-color); font-size: 2.2rem; }
         
+        /* 帳號登入畫面樣式 */
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-color); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 450px; width: 100%; }
+        .login-btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        .hero-select-btn { padding: 18px; font-size: 1.4rem; font-weight: bold; border: 3px solid var(--primary-color); border-radius: 15px; background: white; color: var(--primary-color); cursor: pointer; transition: all 0.2s; }
+        .hero-select-btn:hover { background: var(--primary-color); color: white; transform: translateY(-2px); }
+
         /* 狀態列 */
-        .status-bar { background: var(--card-bg); padding: 10px 25px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; width: 100%; max-width: 950px; }
+        .status-bar { background: var(--card-bg); padding: 10px 25px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 15px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; width: 100%; max-width: 950px; align-items: center; flex-wrap: wrap; }
         .coin-count { color: var(--secondary-color); }
+        .user-tag { background: #EDF3ED; padding: 4px 12px; border-radius: 12px; font-size: 0.95rem; color: var(--primary-color); }
         .sync-indicator { font-size: 0.9rem; font-weight: normal; margin-left: auto; color: #888; }
 
         /* 導覽標籤 */
@@ -33,7 +41,6 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* 通用標題與按鈕 */
         h2.section-title { margin-bottom: 15px; color: var(--primary-color); text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .styled-btn { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
         .styled-btn:hover { opacity: 0.9; }
@@ -52,7 +59,7 @@
         .dot { width: 34px; height: 34px; background-color: #FFB7B2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; color: #CC4444; animation: pop 0.2s ease-out; user-select: none; }
         .dot.no-num { color: transparent; }
 
-        /* --- 2. 練習島與模組設定 --- */
+        /* --- 2. 練習島 --- */
         .practice-setting-panel { background: #FAFDFC; border: 1px solid #D1DED1; border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; font-weight: bold; }
         .practice-setting-panel select { padding: 5px 12px; font-size: 1rem; border-radius: 6px; border: 1px solid #CCC; }
         
@@ -64,25 +71,21 @@
         .practice-rule-title { font-size: 1.1rem; color: #666; margin-bottom: 15px; background: #EDF3ED; padding: 6px 15px; border-radius: 20px; font-weight: bold; text-align: center; }
         .practice-main-q { font-size: 3.5rem; font-weight: bold; margin-bottom: 20px; color: var(--text-color); }
 
-        /* 多對多連連看 */
         .multi-match-board { display: flex; justify-content: space-between; width: 100%; max-width: 550px; position: relative; gap: 40px; margin: 10px 0; }
         .mm-col { display: flex; flex-direction: column; gap: 15px; flex: 1; z-index: 2; }
         .mm-box { padding: 15px 10px; background: white; border: 3px solid #D1DED1; border-radius: 12px; font-size: 1.4rem; font-weight: bold; text-align: center; cursor: pointer; user-select: none; transition: all 0.2s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         .mm-box.selected { border-color: var(--secondary-color); background: #FFF2E6; transform: scale(1.03); }
         .mm-box.linked { border-color: var(--primary-color); background: #EFF7EF; color: var(--primary-color); cursor: not-allowed; }
         
-        /* 拖曳填空 */
         .drag-container { display: flex; align-items: center; gap: 15px; font-size: 2.5rem; font-weight: bold; margin-bottom: 25px; }
         .drop-target { width: 80px; height: 60px; border: 3px dashed var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: white; font-size: 2rem; color: var(--secondary-color); }
         .drag-options { display: flex; gap: 15px; }
         .drag-item { padding: 10px 25px; background: white; border: 2px solid #D1DED1; border-radius: 10px; font-size: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        /* 氣球爆破 */
         .balloon-grid { display: flex; gap: 20px; justify-content: center; margin-top: 5px; flex-wrap: wrap; }
         .balloon { width: 90px; height: 105px; background: #FFB7B2; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; color: white; cursor: pointer; position: relative; animation: float 3s ease-in-out infinite alternate; }
         .balloon::after { content: ''; position: absolute; bottom: -8px; left: 42px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 8px solid #FFB7B2; }
         
-        /* 輸入答案 */
         .input-practice-box { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .huge-input { width: 120px; padding: 10px; font-size: 2.2rem; font-weight: bold; text-align: center; border: 3px solid var(--primary-color); border-radius: 12px; color: var(--secondary-color); }
 
@@ -115,7 +118,7 @@
         .wrong-list-box { border: 1px solid #E2EBE2; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; background: #FFF5F5; margin-bottom: 15px; }
         .wrong-item-tag { display: inline-block; padding: 6px 12px; background: white; border: 1px solid #FFA3A3; color: #CC0000; font-weight: bold; margin: 4px; border-radius: 8px; }
 
-        /* --- 5. 獎勵商店與兌獎紀錄 --- */
+        /* --- 5. 獎勵商店 --- */
         .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         .shop-item { border: 2px solid #E2EBE2; border-radius: 12px; padding: 15px; text-align: center; background: #FAFDFC; }
         .shop-item h3 { font-size: 1.1rem; margin-bottom: 5px; }
@@ -129,7 +132,6 @@
         .status-badge.wait { background: #FFE6CC; color: #B35C00; }
         .status-badge.done { background: #D1E7DD; color: #0F5132; }
 
-        /* 動態大字鼓勵反饋 */
         .feedback-overlay { position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; font-weight: bold; pointer-events: none; opacity: 0; z-index: 100; text-align: center; line-height: 1.4; }
         @keyframes pop { 0% { transform: scale(0); } 90% { transform: scale(1.1); } 100% { transform: scale(1); } }
         @keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
@@ -137,14 +139,22 @@
 </head>
 <body>
 
-    <header>
-        <h1>森林乘法冒險島 V6.1 🌲🌟</h1>
-        <p>多元遊戲化闖關·精熟九九乘法表</p>
-    </header>
+    <div class="login-overlay" id="login-screen">
+        <div class="login-card">
+            <h2 style="color: var(--primary-color); margin-bottom: 10px;">🌲 歡迎來到森林乘法冒險島</h2>
+            <p style="color: gray;">請選擇你的小勇士帳號，開啟乘法冒險！</p>
+            <div class="login-btn-group">
+                <button class="hero-select-btn" onclick="selectHero('hero123')">大寶的帳號 👑 (hero123)</button>
+                <button class="hero-select-btn" onclick="selectHero('hero456')">二寶的帳號 🌟 (hero456)</button>
+            </div>
+        </div>
+    </div>
 
     <div class="status-bar">
+        <span class="user-tag">小勇士：<span id="current-user-txt">未登入</span></span>
         <span>冒險進度：<span id="max-unlock-txt" style="color:var(--primary-color)">2 的乘法</span></span>
         <span class="coin-count">冒險金幣：<span id="coin-display">0</span> 個</span>
+        <button onclick="logoutHero()" style="padding: 2px 10px; font-size:0.8rem; border-radius:8px; border:1px solid #CCC; background:#FFF; cursor:pointer;">換人玩</button>
         <span class="sync-indicator" id="sync-status">☁️ 正在連線雲端...</span>
     </div>
 
@@ -285,7 +295,6 @@
             
             <div class="history-section">
                 <h3 style="color: var(--primary-color); display:flex; align-items:center; gap:5px;">📜 我的皇家兌獎紀錄</h3>
-                <p style="color:gray; font-size:0.85rem;">這裡記錄了你換過的所有願望物品喔！如果拿到禮物了，爸爸媽媽會在後台幫你蓋章！</p>
                 <table class="history-table">
                     <thead>
                         <tr>
@@ -296,9 +305,7 @@
                         </tr>
                     </thead>
                     <tbody id="history-log-tbody">
-                        <tr>
-                            <td colspan="4" style="color:gray;">目前還沒有兌換紀錄，繼續加油存錢吧！💪</td>
-                        </tr>
+                        <tr><td colspan="4" style="color:gray;">正在讀取紀錄中...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -308,15 +315,15 @@
     <div id="feedback-effect" class="feedback-overlay"></div>
 
     <script>
-        // 【⚠️ 重要雲端設定】請將下方網址替換成您在步驟二生成的 GAS 網址！
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec";
-        const USER_ID = "hero123"; 
+        // 【⚠️ 重要設定】請填入您的 GAS API 網址！
+        const GAS_API_URL = "YOUR_GAS_API_URL";
+        let CURRENT_USER = ""; 
 
         // --- 全域狀態 ---
         let state = {
             coins: 0, unlockedIsland: 2, currentSelectedIsland: 2, currentSelectedNum: 1,
-            wrongQuestions: [], stats: { total: 0, correct: 0, totalSeconds: 0 }, learnedItems: {},
-            historyLogs: [] // 儲存兌獎紀錄
+            wrongQuestions: [], stats: { total: 0, correct: 0, totalSeconds: 0 }, learnedItems: {} ,
+            historyLogs: [] 
         };
 
         let quiz = {
@@ -344,15 +351,115 @@
             { id: 10, name: "📖 書局挑一本喜歡的書 (限額500元內)", cost: 5000 }
         ];
 
+        // ================= 🌟 網頁內建音效產生器 (Web Audio API) 🌟 =================
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 叮咚！答對音效
+        function playCorrectSound() {
+            try {
+                initAudio();
+                let now = audioCtx.currentTime;
+                // 第一音：E6 高音
+                let osc1 = audioCtx.createOscillator();
+                let gain1 = audioCtx.createGain();
+                osc1.type = 'triangle'; // 三角波，聲音溫潤不刺耳
+                osc1.frequency.setValueAtTime(1318.51, now); // E6
+                gain1.gain.setValueAtTime(0.15, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now); osc1.stop(now + 0.1);
+
+                // 第二音：A6 更高音，營造雀躍感
+                let osc2 = audioCtx.createOscillator();
+                let gain2 = audioCtx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1760.00, now + 0.08); // A6
+                gain2.gain.setValueAtTime(0.15, now + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.08); osc2.stop(now + 0.25);
+            } catch(e) { console.log("音效播不出來：", e); }
+        }
+
+        // 咚咚... 答錯音效
+        function playWrongSound() {
+            try {
+                initAudio();
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sawtooth'; // 鋸齒波，帶有一點警示挫折感
+                osc.frequency.setValueAtTime(246.94, now); // B3
+                osc.frequency.linearRampToValueAtTime(174.61, now + 0.25); // 滑音降到 F3
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.25);
+            } catch(e) { console.log(e); }
+        }
+
+        // 煙火大歡呼！通關勝利音效
+        function playVictorySound() {
+            try {
+                initAudio();
+                let now = audioCtx.currentTime;
+                // 快速連續彈奏多個上升音符
+                let notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00]; // C5 到 C7 和弦
+                notes.forEach((freq, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine'; // 正弦波，像乾淨的水晶音樂
+                    osc.frequency.setValueAtTime(freq, now + (i * 0.06));
+                    gain.gain.setValueAtTime(0.1, now + (i * 0.06));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.06) + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (i * 0.06)); osc.stop(now + (i * 0.06) + 0.3);
+                });
+            } catch(e) {}
+        }
+
+        // --- 登入控制 ---
+        function selectHero(userId) {
+            initAudio(); // 確保使用者點擊互動後解鎖音效權限
+            CURRENT_USER = userId;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('current-user-txt').innerText = userId === "hero123" ? "大寶 (hero123)" : "二寶 (hero456)";
+            
+            if (GAS_API_URL !== "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec") {
+                loadProgressFromCloud();
+            } else {
+                setSyncStatus("⚠️ 請填入您的 GAS API 網址！");
+                renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(false); syncUI();
+            }
+        }
+
+        function logoutHero() {
+            if(confirm("確定要登出並換人玩嗎？系統會先安全存檔。")) {
+                saveProgressToCloud();
+                clearInterval(quiz.timerInterval);
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('current-user-txt').innerText = "未登入";
+            }
+        }
+
         function setSyncStatus(txt) {
             document.getElementById('sync-status').innerText = txt;
         }
 
-        // 下載雲端紀錄 (包含紀錄)
+        // 下載雲端紀錄
         function loadProgressFromCloud() {
             setSyncStatus("☁️ 正在同步雲端資料...");
-            fetch(`${GAS_API_URL}?userId=${USER_ID}`)
-                .then(res => res.json())
+            fetch(`${GAS_API_URL}?userId=${CURRENT_USER}`, { method: "GET", cache: "no-cache" })
+                .then(res => { if (!res.ok) throw new Error('雲端連線失敗'); return res.json(); })
                 .then(data => {
                     if (data.status === "success") {
                         state.coins = data.coins;
@@ -361,64 +468,52 @@
                         state.stats.correct = data.correct;
                         state.stats.totalSeconds = data.totalSeconds;
                         state.wrongQuestions = data.wrongQuestions || [];
-                        state.historyLogs = data.history || []; // 載入歷史紀錄
+                        state.historyLogs = data.history || [];
                         
                         setSyncStatus("☁️ 雲端同步完成");
-                        renderLearnIslands();
-                        renderLearnMatrixButtons();
-                        triggerLearnRender(false);
-                        renderHistoryTable(); // 渲染紀錄表
-                        syncUI();
-                    } else {
-                        setSyncStatus("❌ 找不到此使用者帳號");
-                    }
+                        renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(false); renderHistoryTable(); syncUI();
+                    } else { setSyncStatus("❌ 找不到此使用者帳號"); }
                 })
                 .catch(err => {
                     console.error(err);
-                    setSyncStatus("❌ 網路連線或 API 設定錯誤");
+                    setSyncStatus("⚠️ 雲端讀取失敗，已啟動本地緩存模式");
+                    loadLocalBackup();
                 });
+        }
+
+        function loadLocalBackup() {
+            state.coins = parseInt(localStorage.getItem('bk_coins_' + CURRENT_USER) || "0");
+            state.unlockedIsland = parseInt(localStorage.getItem('bk_island_' + CURRENT_USER) || "2");
+            renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(false); renderHistoryTable(); syncUI();
         }
 
         // 上傳雲端紀錄
         function saveProgressToCloud() {
+            if(!CURRENT_USER) return;
             setSyncStatus("⚡ 正在更新至雲端...");
             const payload = {
-                userId: USER_ID, coins: state.coins, unlockedIsland: state.unlockedIsland,
+                userId: CURRENT_USER, coins: state.coins, unlockedIsland: state.unlockedIsland,
                 total: state.stats.total, correct: state.stats.correct,
                 totalSeconds: state.stats.totalSeconds, wrongQuestions: state.wrongQuestions
             };
+            localStorage.setItem('bk_coins_' + CURRENT_USER, state.coins);
+            localStorage.setItem('bk_island_' + CURRENT_USER, state.unlockedIsland);
 
-            fetch(GAS_API_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
+            fetch(GAS_API_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
             .then(() => { setSyncStatus("☁️ 進度已同步至試算表"); })
             .catch(err => { console.error(err); setSyncStatus("❌ 上傳雲端失敗"); });
         }
 
-        // 時間與定時存檔
+        // 計時器
         setInterval(() => {
+            if(!CURRENT_USER || document.getElementById('login-screen').style.display === 'flex') return;
             state.stats.totalSeconds++;
             const mins = Math.floor(state.stats.totalSeconds / 60);
             const secs = state.stats.totalSeconds % 60;
             const el = document.getElementById('dash-time-txt');
             if(el) el.innerText = `${mins}分 ${secs}秒`;
-            
             if (state.stats.totalSeconds % 30 === 0) saveProgressToCloud();
         }, 1000);
-
-        window.onload = function() {
-            renderShop();
-            renderSetupCheckboxes();
-            if (GAS_API_URL === "YOUR_GAS_API_URL") {
-                setSyncStatus("⚠️ 請填入您的 GAS API 網址！");
-                renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(false); syncUI();
-            } else {
-                loadProgressFromCloud();
-            }
-        };
 
         function syncUI() {
             document.getElementById('coin-display').innerText = state.coins;
@@ -433,9 +528,7 @@
                 listContainer.innerHTML = '<span style="color:gray">目前沒有測驗錯題，太棒了！保持下去！</span>';
             } else {
                 listContainer.innerHTML = '';
-                state.wrongQuestions.forEach(q => {
-                    listContainer.innerHTML += `<span class="wrong-item-tag">${q.base} × ${q.mult}</span>`;
-                });
+                state.wrongQuestions.forEach(q => { listContainer.innerHTML += `<span class="wrong-item-tag">${q.base} × ${q.mult}</span>`; });
             }
         }
 
@@ -453,50 +546,38 @@
             document.getElementById(`nav-${viewName}`).classList.add('active');
 
             if(viewName === 'practice') { generateNewPracticeQuestion(); loadPracticeGameUI(); }
-            if(viewName === 'shop') { loadProgressFromCloud(); } // 切換到商店時主動重整拉取最新的紀錄與金幣
-            syncUI();
-            saveProgressToCloud(); 
+            if(viewName === 'shop') { loadProgressFromCloud(); } 
+            syncUI(); saveProgressToCloud(); 
         }
 
         // ================= 1. 學習島 =================
         function renderLearnIslands() {
-            const container = document.getElementById('learn-island-map');
-            if(!container) return; container.innerHTML = '';
+            const container = document.getElementById('learn-island-map'); if(!container) return; container.innerHTML = '';
             for(let i=2; i<=9; i++) {
                 let btn = document.createElement('button');
                 btn.className = `island-btn ${i === state.currentSelectedIsland ? 'active' : ''}`;
                 btn.innerText = `<${i}的乘法>`;
-                btn.onclick = () => {
-                    state.currentSelectedIsland = i;
-                    renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(true);
-                };
+                btn.onclick = () => { state.currentSelectedIsland = i; renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(true); };
                 container.appendChild(btn);
             }
         }
 
         function renderLearnMatrixButtons() {
-            const container = document.getElementById('quick-matrix-grid');
-            if(!container) return; container.innerHTML = '';
+            const container = document.getElementById('quick-matrix-grid'); if(!container) return; container.innerHTML = '';
             const b = state.currentSelectedIsland;
             for(let i=1; i<=9; i++) {
                 let btn = document.createElement('button');
                 btn.className = `quick-num-btn ${i === state.currentSelectedNum ? 'active' : ''}`;
                 btn.innerText = `${b}×${i}`;
-                btn.onclick = () => {
-                    state.currentSelectedNum = i;
-                    renderLearnMatrixButtons(); triggerLearnRender(true);
-                };
+                btn.onclick = () => { state.currentSelectedNum = i; renderLearnMatrixButtons(); triggerLearnRender(true); };
                 container.appendChild(btn);
             }
         }
 
         function triggerLearnRender(addCoinEarned) {
-            const b = state.currentSelectedIsland;
-            const m = state.currentSelectedNum;
-            const ans = b * m;
-            
-            const eqEl = document.getElementById('learn-equation');
-            if(!eqEl) return; eqEl.innerText = `${b} × ${m} = ${ans}`;
+            const b = state.currentSelectedIsland; const m = state.currentSelectedNum; const ans = b * m;
+            const eqEl = document.getElementById('learn-equation'); if(!eqEl) return;
+            eqEl.innerText = `${b} × ${m} = ${ans}`;
             document.getElementById('learn-explain-text').innerText = `💡 畫面呈現：一排有 ${b} 個，總共有 ${m} 排。`;
             
             const matrix = document.getElementById('matrix-container');
@@ -514,15 +595,12 @@
             }
 
             if (addCoinEarned) {
-                const key = `${b}x${m}`;
-                const rewardZone = document.getElementById('learn-reward-zone');
+                const key = `${b}x${m}`; const rewardZone = document.getElementById('learn-reward-zone');
                 if(!state.learnedItems[key]) {
                     state.coins += 1; state.learnedItems[key] = true;
                     rewardZone.innerHTML = `<span style="color:var(--primary-color); font-weight:bold;">✨ 第一次探索此題目圖形！獲得獎勵金幣 +1 個！</span>`;
-                    showPraiseFX("金幣 +1"); syncUI(); saveProgressToCloud();
-                } else {
-                    rewardZone.innerHTML = `<span style="color:gray; font-size:0.9rem;">🌱 你已經看過這個圖解囉，溫故知新棒棒噠！</span>`;
-                }
+                    playCorrectSound(); showPraiseFX("金幣 +1"); syncUI(); saveProgressToCloud();
+                } else { rewardZone.innerHTML = `<span style="color:gray; font-size:0.9rem;">🌱 你已經看過這個圖解囉，溫故知新棒棒噠！</span>`; }
             }
         }
 
@@ -551,8 +629,7 @@
         }
 
         function loadPracticeGameUI() {
-            const area = document.getElementById('practice-content-area');
-            if(!area) return; area.innerHTML = '';
+            const area = document.getElementById('practice-content-area'); if(!area) return; area.innerHTML = '';
             const b = practice.base; const m = practice.mult; const ans = practice.ans;
 
             if(practice.mode === 'match') {
@@ -616,41 +693,61 @@
                 document.getElementById(`mm-l-${leftItem.id}`).classList.add('linked');
                 document.getElementById(`mm-r-${ansVal}`).classList.add('linked');
                 practice.matchData.solvedPairs++; practice.matchData.selectedLeft = null;
-                showPraiseFX("答對了！👏"); if(practice.matchData.solvedPairs === 3) earnPracticeReward();
-            } else { showPraiseFX("❌ 不太對喔"); }
+                
+                playCorrectSound(); // 答對音效
+                showPraiseFX("答對了！👏"); 
+                if(practice.matchData.solvedPairs === 3) earnPracticeReward();
+            } else { 
+                playWrongSound(); // 答錯音效
+                showPraiseFX("❌ 不太對喔"); 
+            }
         }
 
         function earnPracticeReward() {
             state.coins += 1; let randPraise = praises[Math.floor(Math.random() * praises.length)];
+            playCorrectSound(); // 過關加強音效
             showPraiseFX(`${randPraise}<br><span style='font-size:1.5rem;color:var(--secondary-color);'>金幣 +1</span>`);
             syncUI(); saveProgressToCloud();
             setTimeout(() => { generateNewPracticeQuestion(); loadPracticeGameUI(); }, 1100);
         }
 
-        function switchPracticeMode(mode) {
-            practice.mode = mode;
-            document.querySelectorAll('.sub-nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-p-${mode}`).classList.add('active');
-            generateNewPracticeQuestion(); loadPracticeGameUI();
-        }
-
         function clickDragOpt(chosen, correct) {
             state.stats.total++;
-            if(chosen === correct) { state.stats.correct++; document.getElementById('drop-box').innerText = chosen; earnPracticeReward(); } 
-            else { showPraiseFX("❌ 不對喔，再想一想！"); }
+            if(chosen === correct) { 
+                state.stats.correct++; 
+                document.getElementById('drop-box').innerText = chosen; 
+                playCorrectSound();
+                earnPracticeReward(); 
+            } else { 
+                playWrongSound();
+                showPraiseFX("❌ 不對喔，再想一想！"); 
+            }
         }
 
         function clickBalloon(chosen, correct) {
             state.stats.total++;
-            if(chosen === correct) { state.stats.correct++; earnPracticeReward(); } 
-            else { showPraiseFX("🎈 答案錯囉！"); }
+            if(chosen === correct) { 
+                state.stats.correct++; 
+                playCorrectSound();
+                earnPracticeReward(); 
+            } else { 
+                playWrongSound();
+                showPraiseFX("🎈 答案錯囉！"); 
+            }
         }
 
         function checkKeyboardAnswer(correctAns) {
             const inputEl = document.getElementById('p-user-input'); const userAns = parseInt(inputEl.value); if(isNaN(userAns)) return;
             state.stats.total++;
-            if(userAns === correctAns) { state.stats.correct++; earnPracticeReward(); } 
-            else { showPraiseFX("❌ 算錯囉，再算一遍！"); inputEl.value = ''; inputEl.focus(); }
+            if(userAns === correctAns) { 
+                state.stats.correct++; 
+                playCorrectSound();
+                earnPracticeReward(); 
+            } else { 
+                playWrongSound();
+                showPraiseFX("❌ 算錯囉，再算一遍！"); 
+                inputEl.value = ''; inputEl.focus(); 
+            }
         }
 
         // ================= 3. 多元測驗島 =================
@@ -696,7 +793,7 @@
 
             if(quiz.mode === 'marathon') { quiz.list = tempPool.slice(0, quiz.totalCount); setupGameHeader('🎯 馬拉松', '不限時', `進度: 1/${quiz.list.length}`); } 
             else if(quiz.mode === 'timeAttack') { quiz.list = tempPool; setupGameHeader('⏱️ 拆彈專家', `${quiz.timeLeft}秒`, `答對: 0 題`); startQuizTimer(); } 
-            else if(quiz.mode === 'boss') { quiz.list = tempPool.slice(0, 5); setupGameHeader('👹 大魔王關', '生存制', `魔王血量: ❤️❤️❤️❤️❤️`); } 
+            else if(quiz.mode === 'boss') { quiz.list = tempPool.slice(0, 5); setupGameHeader('👹 大魔王關', '生存制', `魔王血量: ❤️结构❤️`); } 
             else if(quiz.mode === 'treasure') { quiz.list = tempPool.slice(0, 8); setupGameHeader('🎁 寶箱關', '雙倍金幣', `進度: 1/8`); } 
             else if(quiz.mode === 'star') { quiz.list = tempPool; setupGameHeader('⭐ 星星守護者', `生命: ❤️❤️❤️`, `已守護: 0 關`); }
             runNextQuestion();
@@ -729,10 +826,15 @@
         function answerGameQuestion(chosen, originalQ) {
             state.stats.total++; let isCorrect = (chosen === quiz.currentAns);
             if(isCorrect) {
-                state.stats.correct++; quiz.correctCount++; quiz.combo++; showPraiseFX("🎉 太棒了");
+                state.stats.correct++; quiz.correctCount++; quiz.combo++; 
+                playCorrectSound(); // 測驗答對音效
+                showPraiseFX("🎉 太棒了");
                 if(quiz.combo >= 2) { let cb = document.getElementById('g-combo'); cb.innerText = `Combo ${quiz.combo} 🔥 衝啊！`; cb.style.opacity = 1; }
             } else {
-                quiz.combo = 0; document.getElementById('g-combo').style.opacity = 0; showPraiseFX("❌ 算錯囉"); quiz.lives--;
+                quiz.combo = 0; document.getElementById('g-combo').style.opacity = 0; 
+                playWrongSound(); // 測驗答錯音效
+                showPraiseFX("❌ 算錯囉"); 
+                quiz.lives--;
                 if(quiz.mode !== 'wrong_train') { if(!state.wrongQuestions.some(x => x.base === originalQ.base && x.mult === originalQ.mult)) state.wrongQuestions.push(originalQ); }
             }
             if(quiz.mode === 'wrong_train' && isCorrect) state.wrongQuestions = state.wrongQuestions.filter(x => !(x.base === originalQ.base && x.mult === originalQ.mult));
@@ -748,6 +850,8 @@
         function finishQuizGame() {
             clearInterval(quiz.timerInterval); document.getElementById('quiz-game-zone').style.display = 'none'; document.getElementById('quiz-menu-zone').style.display = 'block';
             let prize = quiz.correctCount * 1; let msg = `🏁 挑戰結束！你答對了 ${quiz.correctCount} 題，獲得金幣 +${prize} 個！`;
+
+            playVictorySound(); // 彈出挑戰結束時播放拉炮勝利音效
 
             if(quiz.mode === 'marathon' && quiz.correctCount >= quiz.list.length * 0.8 && state.unlockedIsland < 9) {
                 state.unlockedIsland++; msg += `\n解鎖更高難度「${state.unlockedIsland}的乘法」範圍囉！`; renderLearnIslands();
@@ -778,7 +882,6 @@
             });
         }
 
-        // 🌟 新增：將紀錄渲染到前端表格中 🌟
         function renderHistoryTable() {
             const tbody = document.getElementById('history-log-tbody'); if(!tbody) return;
             if(state.historyLogs.length === 0) {
@@ -786,7 +889,6 @@
                 return;
             }
             tbody.innerHTML = '';
-            // 反轉陣列，讓最新兌換的排在最上面
             let sortedLogs = [...state.historyLogs].reverse();
             sortedLogs.forEach(log => {
                 let badgeClass = log.status === "已完成" ? "done" : "wait";
@@ -796,44 +898,26 @@
                         <td style="text-align:left; font-weight:bold;">${log.itemName}</td>
                         <td style="color:var(--secondary-color); font-weight:bold;">-${log.itemCost}</td>
                         <td><span class="status-badge ${badgeClass}">${log.status}</span></td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
-        // 🌟 新增：串接後端即時扣點與成立訂單紀錄 🌟
         function buyShopItem(name, cost) {
             if(state.coins >= cost) {
                 if(!confirm(`確定要消耗 ${cost} 枚金幣兌換【${name}】嗎？`)) return;
+                state.coins -= cost; syncUI(); setSyncStatus("⚡ 正在成立皇家兌獎訂單...");
                 
-                state.coins -= cost; 
-                syncUI();
-                setSyncStatus("⚡ 正在成立皇家兌獎訂單...");
-                
-                // 發送請求給 GAS 做訂單記錄與扣點
                 const payload = {
-                    userId: USER_ID,
-                    action: "buyItem",
-                    coins: state.coins,
-                    itemName: name,
-                    itemCost: cost
+                    userId: CURRENT_USER, action: "buyItem", coins: state.coins, itemName: name, itemCost: cost
                 };
 
-                fetch(GAS_API_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                })
+                fetch(GAS_API_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
                 .then(() => {
-                    alert(`🎁 兌換成功！已扣除 ${cost} 金幣。\n紀錄已寫入「我的皇家兌獎紀錄」，快去找爸爸媽媽兌現吧！`);
-                    loadProgressFromCloud(); // 重新載入，更新表格
+                    playVictorySound(); // 兌換成功也播小煙火音效
+                    alert(`🎁 兌換成功！已扣除 ${cost} 金幣。\n紀錄已寫入歷史，快去找爸爸媽媽領取吧！`);
+                    loadProgressFromCloud(); 
                 })
-                .catch(err => {
-                    console.error(err);
-                    alert("⚠️ 雲端寫入訂單時失敗，請檢查網路連線。");
-                });
-                
+                .catch(err => { console.error(err); alert("⚠️ 雲端寫入訂單失敗。"); });
             } else { alert(`您的金幣還不夠兌換此項目喔！繼續努力累積吧！`); }
         }
 
