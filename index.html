@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>森林乘法冒險島 V6.3 遊戲音效雙人雲端版 🌲🌟</title>
+    <title>森林乘法冒險島 V6.4 終極完美版 🌲🌟</title>
     <style>
         :root {
             --primary-color: #799F7A; /* 森林綠 */
@@ -144,8 +144,8 @@
             <h2 style="color: var(--primary-color); margin-bottom: 10px;">🌲 歡迎來到森林乘法冒險島</h2>
             <p style="color: gray;">請選擇你的小勇士帳號，開啟乘法冒險！</p>
             <div class="login-btn-group">
-                <button class="hero-select-btn" onclick="selectHero('hero123')">大寶的帳號 👑 (hero123)</button>
-                <button class="hero-select-btn" onclick="selectHero('hero456')">二寶的帳號 🌟 (hero456)</button>
+                <button class="hero-select-btn" onclick="selectHero('hero123')">晨語的帳號 👑 (hero123)</button>
+                <button class="hero-select-btn" onclick="selectHero('hero456')">翊甯的帳號 🌟 (hero456)</button>
             </div>
         </div>
     </div>
@@ -351,89 +351,59 @@
             { id: 10, name: "📖 書局挑一本喜歡的書 (限額500元內)", cost: 5000 }
         ];
 
-        // ================= 🌟 網頁內建音效產生器 (Web Audio API) 🌟 =================
+        // ================= 音效產生器 =================
         let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+        function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } }
 
-        // 叮咚！答對音效
         function playCorrectSound() {
             try {
-                initAudio();
-                let now = audioCtx.currentTime;
-                // 第一音：E6 高音
-                let osc1 = audioCtx.createOscillator();
-                let gain1 = audioCtx.createGain();
-                osc1.type = 'triangle'; // 三角波，聲音溫潤不刺耳
-                osc1.frequency.setValueAtTime(1318.51, now); // E6
-                gain1.gain.setValueAtTime(0.15, now);
-                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-                osc1.connect(gain1);
-                gain1.connect(audioCtx.destination);
-                osc1.start(now); osc1.stop(now + 0.1);
+                initAudio(); let now = audioCtx.currentTime;
+                let osc1 = audioCtx.createOscillator(); let gain1 = audioCtx.createGain();
+                osc1.type = 'triangle'; osc1.frequency.setValueAtTime(1318.51, now);
+                gain1.gain.setValueAtTime(0.15, now); gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc1.connect(gain1); gain1.connect(audioCtx.destination); osc1.start(now); osc1.stop(now + 0.1);
 
-                // 第二音：A6 更高音，營造雀躍感
-                let osc2 = audioCtx.createOscillator();
-                let gain2 = audioCtx.createGain();
-                osc2.type = 'triangle';
-                osc2.frequency.setValueAtTime(1760.00, now + 0.08); // A6
-                gain2.gain.setValueAtTime(0.15, now + 0.08);
-                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                osc2.connect(gain2);
-                gain2.connect(audioCtx.destination);
-                osc2.start(now + 0.08); osc2.stop(now + 0.25);
-            } catch(e) { console.log("音效播不出來：", e); }
+                let osc2 = audioCtx.createOscillator(); let gain2 = audioCtx.createGain();
+                osc2.type = 'triangle'; osc2.frequency.setValueAtTime(1760.00, now + 0.08);
+                gain2.gain.setValueAtTime(0.15, now + 0.08); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc2.connect(gain2); gain2.connect(audioCtx.destination); osc2.start(now + 0.08); osc2.stop(now + 0.25);
+            } catch(e) {}
         }
 
-        // 咚咚... 答錯音效
         function playWrongSound() {
             try {
-                initAudio();
-                let now = audioCtx.currentTime;
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = 'sawtooth'; // 鋸齒波，帶有一點警示挫折感
-                osc.frequency.setValueAtTime(246.94, now); // B3
-                osc.frequency.linearRampToValueAtTime(174.61, now + 0.25); // 滑音降到 F3
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.25);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now); osc.stop(now + 0.25);
-            } catch(e) { console.log(e); }
+                initAudio(); let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(246.94, now);
+                osc.frequency.linearRampToValueAtTime(174.61, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.25);
+            } catch(e) {}
         }
 
-        // 煙火大歡呼！通關勝利音效
         function playVictorySound() {
             try {
-                initAudio();
-                let now = audioCtx.currentTime;
-                // 快速連續彈奏多個上升音符
-                let notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00]; // C5 到 C7 和弦
+                initAudio(); let now = audioCtx.currentTime;
+                let notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
                 notes.forEach((freq, i) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'sine'; // 正弦波，像乾淨的水晶音樂
-                    osc.frequency.setValueAtTime(freq, now + (i * 0.06));
-                    gain.gain.setValueAtTime(0.1, now + (i * 0.06));
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.06) + 0.3);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + (i * 0.06)); osc.stop(now + (i * 0.06) + 0.3);
+                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + (i * 0.06));
+                    gain.gain.setValueAtTime(0.1, now + (i * 0.06)); gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.06) + 0.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + (i * 0.06)); osc.stop(now + (i * 0.06) + 0.3);
                 });
             } catch(e) {}
         }
 
         // --- 登入控制 ---
         function selectHero(userId) {
-            initAudio(); // 確保使用者點擊互動後解鎖音效權限
+            initAudio(); 
             CURRENT_USER = userId;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('current-user-txt').innerText = userId === "hero123" ? "大寶 (hero123)" : "二寶 (hero456)";
             
+            // 🌟 修正：一併初始化題組複選核取方塊，防止其鬧失蹤
+            renderSetupCheckboxes();
+
             if (GAS_API_URL !== "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec") {
                 loadProgressFromCloud();
             } else {
@@ -451,9 +421,7 @@
             }
         }
 
-        function setSyncStatus(txt) {
-            document.getElementById('sync-status').innerText = txt;
-        }
+        function setSyncStatus(txt) { document.getElementById('sync-status').innerText = txt; }
 
         // 下載雲端紀錄
         function loadProgressFromCloud() {
@@ -525,7 +493,7 @@
             
             const listContainer = document.getElementById('dash-wrong-list');
             if(state.wrongQuestions.length === 0) {
-                listContainer.innerHTML = '<span style="color:gray">目前沒有測驗錯題，太棒了！保持下去！</span>';
+                listContainer.innerHTML = '<span style="color:gray">目前開拓無錯題，太棒了！保持下去！</span>';
             } else {
                 listContainer.innerHTML = '';
                 state.wrongQuestions.forEach(q => { listContainer.innerHTML += `<span class="wrong-item-tag">${q.base} × ${q.mult}</span>`; });
@@ -694,60 +662,47 @@
                 document.getElementById(`mm-r-${ansVal}`).classList.add('linked');
                 practice.matchData.solvedPairs++; practice.matchData.selectedLeft = null;
                 
-                playCorrectSound(); // 答對音效
+                playCorrectSound();
                 showPraiseFX("答對了！👏"); 
                 if(practice.matchData.solvedPairs === 3) earnPracticeReward();
             } else { 
-                playWrongSound(); // 答錯音效
+                playWrongSound();
                 showPraiseFX("❌ 不太對喔"); 
             }
         }
 
         function earnPracticeReward() {
             state.coins += 1; let randPraise = praises[Math.floor(Math.random() * praises.length)];
-            playCorrectSound(); // 過關加強音效
+            playCorrectSound();
             showPraiseFX(`${randPraise}<br><span style='font-size:1.5rem;color:var(--secondary-color);'>金幣 +1</span>`);
             syncUI(); saveProgressToCloud();
             setTimeout(() => { generateNewPracticeQuestion(); loadPracticeGameUI(); }, 1100);
         }
 
+        function switchPracticeMode(mode) {
+            practice.mode = mode;
+            document.querySelectorAll('.sub-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-p-${mode}`).classList.add('active');
+            generateNewPracticeQuestion(); loadPracticeGameUI();
+        }
+
         function clickDragOpt(chosen, correct) {
             state.stats.total++;
-            if(chosen === correct) { 
-                state.stats.correct++; 
-                document.getElementById('drop-box').innerText = chosen; 
-                playCorrectSound();
-                earnPracticeReward(); 
-            } else { 
-                playWrongSound();
-                showPraiseFX("❌ 不對喔，再想一想！"); 
-            }
+            if(chosen === correct) { state.stats.correct++; document.getElementById('drop-box').innerText = chosen; playCorrectSound(); earnPracticeReward(); } 
+            else { playWrongSound(); showPraiseFX("❌ 不對喔，再想一想！"); }
         }
 
         function clickBalloon(chosen, correct) {
             state.stats.total++;
-            if(chosen === correct) { 
-                state.stats.correct++; 
-                playCorrectSound();
-                earnPracticeReward(); 
-            } else { 
-                playWrongSound();
-                showPraiseFX("🎈 答案錯囉！"); 
-            }
+            if(chosen === correct) { state.stats.correct++; playCorrectSound(); earnPracticeReward(); } 
+            else { playWrongSound(); showPraiseFX("🎈 答案錯囉！"); }
         }
 
         function checkKeyboardAnswer(correctAns) {
             const inputEl = document.getElementById('p-user-input'); const userAns = parseInt(inputEl.value); if(isNaN(userAns)) return;
             state.stats.total++;
-            if(userAns === correctAns) { 
-                state.stats.correct++; 
-                playCorrectSound();
-                earnPracticeReward(); 
-            } else { 
-                playWrongSound();
-                showPraiseFX("❌ 算錯囉，再算一遍！"); 
-                inputEl.value = ''; inputEl.focus(); 
-            }
+            if(userAns === correctAns) { state.stats.correct++; playCorrectSound(); earnPracticeReward(); } 
+            else { playWrongSound(); showPraiseFX("❌ 算錯囉，再算一遍！"); inputEl.value = ''; inputEl.focus(); }
         }
 
         // ================= 3. 多元測驗島 =================
@@ -793,9 +748,10 @@
 
             if(quiz.mode === 'marathon') { quiz.list = tempPool.slice(0, quiz.totalCount); setupGameHeader('🎯 馬拉松', '不限時', `進度: 1/${quiz.list.length}`); } 
             else if(quiz.mode === 'timeAttack') { quiz.list = tempPool; setupGameHeader('⏱️ 拆彈專家', `${quiz.timeLeft}秒`, `答對: 0 題`); startQuizTimer(); } 
-            else if(quiz.mode === 'boss') { quiz.list = tempPool.slice(0, 5); setupGameHeader('👹 大魔王關', '生存制', `魔王血量: ❤️结构❤️`); } 
+            else if(quiz.mode === 'boss') { quiz.list = tempPool.slice(0, 5); setupGameHeader('👹 大魔王關', '生存制', `魔王血量: ❤️❤️❤️❤️❤️`); } 
             else if(quiz.mode === 'treasure') { quiz.list = tempPool.slice(0, 8); setupGameHeader('🎁 寶箱關', '雙倍金幣', `進度: 1/8`); } 
             else if(quiz.mode === 'star') { quiz.list = tempPool; setupGameHeader('⭐ 星星守護者', `生命: ❤️❤️❤️`, `已守護: 0 關`); }
+            else if(quiz.mode === 'wrong_train') { setupGameHeader('🔴 錯題魔鬼特訓', '消除弱點', `進度: 1/${quiz.list.length}`); }
             runNextQuestion();
         }
 
@@ -827,12 +783,12 @@
             state.stats.total++; let isCorrect = (chosen === quiz.currentAns);
             if(isCorrect) {
                 state.stats.correct++; quiz.correctCount++; quiz.combo++; 
-                playCorrectSound(); // 測驗答對音效
+                playCorrectSound(); 
                 showPraiseFX("🎉 太棒了");
                 if(quiz.combo >= 2) { let cb = document.getElementById('g-combo'); cb.innerText = `Combo ${quiz.combo} 🔥 衝啊！`; cb.style.opacity = 1; }
             } else {
                 quiz.combo = 0; document.getElementById('g-combo').style.opacity = 0; 
-                playWrongSound(); // 測驗答錯音效
+                playWrongSound(); 
                 showPraiseFX("❌ 算錯囉"); 
                 quiz.lives--;
                 if(quiz.mode !== 'wrong_train') { if(!state.wrongQuestions.some(x => x.base === originalQ.base && x.mult === originalQ.mult)) state.wrongQuestions.push(originalQ); }
@@ -851,7 +807,7 @@
             clearInterval(quiz.timerInterval); document.getElementById('quiz-game-zone').style.display = 'none'; document.getElementById('quiz-menu-zone').style.display = 'block';
             let prize = quiz.correctCount * 1; let msg = `🏁 挑戰結束！你答對了 ${quiz.correctCount} 題，獲得金幣 +${prize} 個！`;
 
-            playVictorySound(); // 彈出挑戰結束時播放拉炮勝利音效
+            playVictorySound();
 
             if(quiz.mode === 'marathon' && quiz.correctCount >= quiz.list.length * 0.8 && state.unlockedIsland < 9) {
                 state.unlockedIsland++; msg += `\n解鎖更高難度「${state.unlockedIsland}的乘法」範圍囉！`; renderLearnIslands();
@@ -913,7 +869,7 @@
 
                 fetch(GAS_API_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
                 .then(() => {
-                    playVictorySound(); // 兌換成功也播小煙火音效
+                    playVictorySound();
                     alert(`🎁 兌換成功！已扣除 ${cost} 金幣。\n紀錄已寫入歷史，快去找爸爸媽媽領取吧！`);
                     loadProgressFromCloud(); 
                 })
