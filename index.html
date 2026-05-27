@@ -648,12 +648,20 @@
             buildAndRunQuiz();
         }
 
-        function startSpecialQuiz(mode) {
-            quiz.mode = mode; quiz.selectedBases = [];
-            for(let i=2; i<=state.unlockedIsland; i++) quiz.selectedBases.push(i);
-            document.getElementById('quiz-setup-panel').style.display = 'none';
-            buildAndRunQuiz();
-        }
+       function startSpecialQuiz(mode) {
+    quiz.mode = mode; 
+    quiz.selectedBases = [];
+    
+    // 修正：如果 unlockedIsland 異常或尚未載入，至少強制給 2 的乘法作為基礎題組
+    let maxIsland = (state.unlockedIsland && state.unlockedIsland >= 2) ? state.unlockedIsland : 2;
+    
+    for(let i = 2; i <= maxIsland; i++) {
+        quiz.selectedBases.push(i);
+    }
+    
+    document.getElementById('quiz-setup-panel').style.display = 'none';
+    buildAndRunQuiz();
+}
 
         function buildAndRunQuiz() {
             document.getElementById('quiz-menu-zone').style.display = 'none'; document.getElementById('quiz-game-zone').style.display = 'block';
