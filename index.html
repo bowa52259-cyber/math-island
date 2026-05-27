@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>森林乘法冒險島 V6 最終上線版 🌲🌟</title>
+    <title>森林乘法冒險島 V6.1 兌獎紀錄版 🌲🌟</title>
     <style>
         :root {
             --primary-color: #799F7A; /* 森林綠 */
@@ -115,11 +115,19 @@
         .wrong-list-box { border: 1px solid #E2EBE2; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; background: #FFF5F5; margin-bottom: 15px; }
         .wrong-item-tag { display: inline-block; padding: 6px 12px; background: white; border: 1px solid #FFA3A3; color: #CC0000; font-weight: bold; margin: 4px; border-radius: 8px; }
 
-        /* --- 5. 獎勵商店 --- */
-        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        /* --- 5. 獎勵商店與兌獎紀錄 --- */
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         .shop-item { border: 2px solid #E2EBE2; border-radius: 12px; padding: 15px; text-align: center; background: #FAFDFC; }
         .shop-item h3 { font-size: 1.1rem; margin-bottom: 5px; }
         .shop-item button { margin-top: 8px; padding: 6px 15px; background: var(--secondary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .history-section { border-top: 2px dashed #CDDECD; padding-top: 20px; margin-top: 20px; }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 8px; overflow: hidden; }
+        .history-table th, .history-table td { padding: 10px; text-align: center; border-bottom: 1px solid #EEE; font-size: 0.95rem; }
+        .history-table th { background: #EDF3ED; color: var(--text-color); font-weight: bold; }
+        .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .status-badge.wait { background: #FFE6CC; color: #B35C00; }
+        .status-badge.done { background: #D1E7DD; color: #0F5132; }
 
         /* 動態大字鼓勵反饋 */
         .feedback-overlay { position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; font-weight: bold; pointer-events: none; opacity: 0; z-index: 100; text-align: center; line-height: 1.4; }
@@ -130,7 +138,7 @@
 <body>
 
     <header>
-        <h1>森林乘法冒險島 V6 🌲🌟</h1>
+        <h1>森林乘法冒險島 V6.1 🌲🌟</h1>
         <p>多元遊戲化闖關·精熟九九乘法表</p>
     </header>
 
@@ -274,6 +282,26 @@
             <h2 class="section-title">🏪 皇家大酬賓實體獎勵商店</h2>
             <p style="text-align:center; color:gray; margin-bottom:20px;">達到對應金幣即可找爸爸媽媽兌換實體願望獎勵！</p>
             <div class="shop-grid" id="shop-carousel-grid"></div>
+            
+            <div class="history-section">
+                <h3 style="color: var(--primary-color); display:flex; align-items:center; gap:5px;">📜 我的皇家兌獎紀錄</h3>
+                <p style="color:gray; font-size:0.85rem;">這裡記錄了你換過的所有願望物品喔！如果拿到禮物了，爸爸媽媽會在後台幫你蓋章！</p>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>兌換時間</th>
+                            <th>品項名稱</th>
+                            <th>消耗金幣</th>
+                            <th>發放狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-log-tbody">
+                        <tr>
+                            <td colspan="4" style="color:gray;">目前還沒有兌換紀錄，繼續加油存錢吧！💪</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -281,13 +309,14 @@
 
     <script>
         // 【⚠️ 重要雲端設定】請將下方網址替換成您在步驟二生成的 GAS 網址！
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec";
+        const GAS_API_URL = "YOUR_GAS_API_URL";
         const USER_ID = "hero123"; 
 
         // --- 全域狀態 ---
         let state = {
             coins: 0, unlockedIsland: 2, currentSelectedIsland: 2, currentSelectedNum: 1,
-            wrongQuestions: [], stats: { total: 0, correct: 0, totalSeconds: 0 }, learnedItems: {} 
+            wrongQuestions: [], stats: { total: 0, correct: 0, totalSeconds: 0 }, learnedItems: {},
+            historyLogs: [] // 儲存兌獎紀錄
         };
 
         let quiz = {
@@ -302,7 +331,6 @@
 
         const praises = ["太厲害了！🌟", "你太棒了！❤️", "乘法小達人！🔥", "算得真快！⚡", "一級棒喔！👍", "大獲全勝！✨"];
         
-        // 🌟 完全採用您規劃的 10 項黃金原物料商店項目
         const shopItems = [
             { id: 1, name: "🛍️ 超商商品任選一項 (限額50元內)", cost: 500 },
             { id: 2, name: "📺 多看卡通 15 分鐘", cost: 500 },
@@ -320,7 +348,7 @@
             document.getElementById('sync-status').innerText = txt;
         }
 
-        // 下載雲端紀錄
+        // 下載雲端紀錄 (包含紀錄)
         function loadProgressFromCloud() {
             setSyncStatus("☁️ 正在同步雲端資料...");
             fetch(`${GAS_API_URL}?userId=${USER_ID}`)
@@ -333,11 +361,13 @@
                         state.stats.correct = data.correct;
                         state.stats.totalSeconds = data.totalSeconds;
                         state.wrongQuestions = data.wrongQuestions || [];
+                        state.historyLogs = data.history || []; // 載入歷史紀錄
                         
                         setSyncStatus("☁️ 雲端同步完成");
                         renderLearnIslands();
                         renderLearnMatrixButtons();
                         triggerLearnRender(false);
+                        renderHistoryTable(); // 渲染紀錄表
                         syncUI();
                     } else {
                         setSyncStatus("❌ 找不到此使用者帳號");
@@ -376,7 +406,6 @@
             const el = document.getElementById('dash-time-txt');
             if(el) el.innerText = `${mins}分 ${secs}秒`;
             
-            // 每 30 秒自動在背景默默存檔一次
             if (state.stats.totalSeconds % 30 === 0) saveProgressToCloud();
         }, 1000);
 
@@ -424,8 +453,9 @@
             document.getElementById(`nav-${viewName}`).classList.add('active');
 
             if(viewName === 'practice') { generateNewPracticeQuestion(); loadPracticeGameUI(); }
+            if(viewName === 'shop') { loadProgressFromCloud(); } // 切換到商店時主動重整拉取最新的紀錄與金幣
             syncUI();
-            saveProgressToCloud(); // 切換分頁主動存檔一次
+            saveProgressToCloud(); 
         }
 
         // ================= 1. 學習島 =================
@@ -648,20 +678,13 @@
             buildAndRunQuiz();
         }
 
-       function startSpecialQuiz(mode) {
-    quiz.mode = mode; 
-    quiz.selectedBases = [];
-    
-    // 修正：如果 unlockedIsland 異常或尚未載入，至少強制給 2 的乘法作為基礎題組
-    let maxIsland = (state.unlockedIsland && state.unlockedIsland >= 2) ? state.unlockedIsland : 2;
-    
-    for(let i = 2; i <= maxIsland; i++) {
-        quiz.selectedBases.push(i);
-    }
-    
-    document.getElementById('quiz-setup-panel').style.display = 'none';
-    buildAndRunQuiz();
-}
+        function startSpecialQuiz(mode) {
+            quiz.mode = mode; quiz.selectedBases = [];
+            let maxIsland = (state.unlockedIsland && state.unlockedIsland >= 2) ? state.unlockedIsland : 2;
+            for(let i=2; i<=maxIsland; i++) quiz.selectedBases.push(i);
+            document.getElementById('quiz-setup-panel').style.display = 'none';
+            buildAndRunQuiz();
+        }
 
         function buildAndRunQuiz() {
             document.getElementById('quiz-menu-zone').style.display = 'none'; document.getElementById('quiz-game-zone').style.display = 'block';
@@ -747,7 +770,7 @@
             buildAndRunQuiz();
         }
 
-        // ================= 5. 商店 =================
+        // ================= 5. 商店與紀錄渲染 =================
         function renderShop() {
             const grid = document.getElementById('shop-carousel-grid'); if(!grid) return; grid.innerHTML = '';
             shopItems.forEach(item => {
@@ -755,10 +778,62 @@
             });
         }
 
+        // 🌟 新增：將紀錄渲染到前端表格中 🌟
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-log-tbody'); if(!tbody) return;
+            if(state.historyLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:gray;">目前還沒有兌換紀錄，繼續加油存錢吧！💪</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = '';
+            // 反轉陣列，讓最新兌換的排在最上面
+            let sortedLogs = [...state.historyLogs].reverse();
+            sortedLogs.forEach(log => {
+                let badgeClass = log.status === "已完成" ? "done" : "wait";
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${log.timestamp || '--'}</td>
+                        <td style="text-align:left; font-weight:bold;">${log.itemName}</td>
+                        <td style="color:var(--secondary-color); font-weight:bold;">-${log.itemCost}</td>
+                        <td><span class="status-badge ${badgeClass}">${log.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 🌟 新增：串接後端即時扣點與成立訂單紀錄 🌟
         function buyShopItem(name, cost) {
             if(state.coins >= cost) {
-                state.coins -= cost; syncUI(); saveProgressToCloud();
-                alert(`🎁 兌換成功！獲得【${name}】\n快去找爸爸媽媽兌現吧！`);
+                if(!confirm(`確定要消耗 ${cost} 枚金幣兌換【${name}】嗎？`)) return;
+                
+                state.coins -= cost; 
+                syncUI();
+                setSyncStatus("⚡ 正在成立皇家兌獎訂單...");
+                
+                // 發送請求給 GAS 做訂單記錄與扣點
+                const payload = {
+                    userId: USER_ID,
+                    action: "buyItem",
+                    coins: state.coins,
+                    itemName: name,
+                    itemCost: cost
+                };
+
+                fetch(GAS_API_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(() => {
+                    alert(`🎁 兌換成功！已扣除 ${cost} 金幣。\n紀錄已寫入「我的皇家兌獎紀錄」，快去找爸爸媽媽兌現吧！`);
+                    loadProgressFromCloud(); // 重新載入，更新表格
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("⚠️ 雲端寫入訂單時失敗，請檢查網路連線。");
+                });
+                
             } else { alert(`您的金幣還不夠兌換此項目喔！繼續努力累積吧！`); }
         }
 
