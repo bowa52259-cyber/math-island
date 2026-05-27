@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>森林乘法冒險島 V6 最終上線版 🌲🌟</title>
+    <style>
+        :root {
+            --primary-color: #799F7A; /* 森林綠 */
+            --secondary-color: #E6A15C; /* 溫暖橘 */
+            --bg-color: #F4F7F4; /* 柔和米綠 */
+            --card-bg: #FFFFFF;
+            --text-color: #3E4E3E;
+            --accent-color: #E06666; /* 活力紅 */
+        }
+
+        * { box-sizing: border-box; font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px; }
+        header { text-align: center; margin-bottom: 15px; }
+        h1 { color: var(--primary-color); font-size: 2.2rem; }
+        
+        /* 狀態列 */
+        .status-bar { background: var(--card-bg); padding: 10px 25px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; width: 100%; max-width: 950px; }
+        .coin-count { color: var(--secondary-color); }
+        .sync-indicator { font-size: 0.9rem; font-weight: normal; margin-left: auto; color: #888; }
+
+        /* 導覽標籤 */
+        nav { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 950px; }
+        nav button { flex: 1; padding: 12px 5px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 12px; background-color: #E2EBE2; color: var(--text-color); cursor: pointer; transition: all 0.2s; }
+        nav button.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 8px rgba(121,159,122,0.3); }
+
+        main { width: 100%; max-width: 950px; background: var(--card-bg); border-radius: 20px; padding: 25px; box-shadow: 0 6px 12px rgba(0,0,0,0.04); min-height: 520px; position: relative; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* 通用標題與按鈕 */
+        h2.section-title { margin-bottom: 15px; color: var(--primary-color); text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .styled-btn { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        .styled-btn:hover { opacity: 0.9; }
+
+        /* --- 1. 學習島 --- */
+        .island-map { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 15px; }
+        .island-btn { padding: 12px 5px; font-size: 1.05rem; font-weight: bold; border: 2px solid var(--primary-color); border-radius: 12px; background: white; color: var(--primary-color); cursor: pointer; }
+        .island-btn.active { background: var(--primary-color); color: white; }
+        
+        .quick-matrix-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; margin: 15px 0; }
+        .quick-num-btn { padding: 15px 5px; font-size: 1.1rem; font-weight: bold; border: 2px solid #C2DCC2; border-radius: 10px; background: #FAFDFC; cursor: pointer; transition: all 0.1s; }
+        .quick-num-btn.active { background: var(--secondary-color); color: white; border-color: var(--secondary-color); transform: scale(1.05); }
+
+        .learn-board { border: 2px dashed var(--primary-color); border-radius: 15px; padding: 20px; text-align: center; background: #FAFDFC; }
+        .matrix-display { display: grid; gap: 8px; justify-content: center; margin: 25px auto; padding: 15px; background: white; border-radius: 10px; display: inline-grid; border: 1px solid #E2EBE2; }
+        .dot { width: 34px; height: 34px; background-color: #FFB7B2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; color: #CC4444; animation: pop 0.2s ease-out; user-select: none; }
+        .dot.no-num { color: transparent; }
+
+        /* --- 2. 練習島與模組設定 --- */
+        .practice-setting-panel { background: #FAFDFC; border: 1px solid #D1DED1; border-radius: 12px; padding: 10px 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; font-weight: bold; }
+        .practice-setting-panel select { padding: 5px 12px; font-size: 1rem; border-radius: 6px; border: 1px solid #CCC; }
+        
+        .sub-nav { display: flex; gap: 5px; margin-bottom: 15px; background: #E2EBE2; padding: 5px; border-radius: 10px; }
+        .sub-nav button { flex: 1; padding: 8px; font-size: 0.95rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-weight: bold;}
+        .sub-nav button.active { background: white; color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .practice-zone { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+        .practice-rule-title { font-size: 1.1rem; color: #666; margin-bottom: 15px; background: #EDF3ED; padding: 6px 15px; border-radius: 20px; font-weight: bold; text-align: center; }
+        .practice-main-q { font-size: 3.5rem; font-weight: bold; margin-bottom: 20px; color: var(--text-color); }
+
+        /* 多對多連連看 */
+        .multi-match-board { display: flex; justify-content: space-between; width: 100%; max-width: 550px; position: relative; gap: 40px; margin: 10px 0; }
+        .mm-col { display: flex; flex-direction: column; gap: 15px; flex: 1; z-index: 2; }
+        .mm-box { padding: 15px 10px; background: white; border: 3px solid #D1DED1; border-radius: 12px; font-size: 1.4rem; font-weight: bold; text-align: center; cursor: pointer; user-select: none; transition: all 0.2s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .mm-box.selected { border-color: var(--secondary-color); background: #FFF2E6; transform: scale(1.03); }
+        .mm-box.linked { border-color: var(--primary-color); background: #EFF7EF; color: var(--primary-color); cursor: not-allowed; }
+        
+        /* 拖曳填空 */
+        .drag-container { display: flex; align-items: center; gap: 15px; font-size: 2.5rem; font-weight: bold; margin-bottom: 25px; }
+        .drop-target { width: 80px; height: 60px; border: 3px dashed var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: white; font-size: 2rem; color: var(--secondary-color); }
+        .drag-options { display: flex; gap: 15px; }
+        .drag-item { padding: 10px 25px; background: white; border: 2px solid #D1DED1; border-radius: 10px; font-size: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        /* 氣球爆破 */
+        .balloon-grid { display: flex; gap: 20px; justify-content: center; margin-top: 5px; flex-wrap: wrap; }
+        .balloon { width: 90px; height: 105px; background: #FFB7B2; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; color: white; cursor: pointer; position: relative; animation: float 3s ease-in-out infinite alternate; }
+        .balloon::after { content: ''; position: absolute; bottom: -8px; left: 42px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 8px solid #FFB7B2; }
+        
+        /* 輸入答案 */
+        .input-practice-box { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .huge-input { width: 120px; padding: 10px; font-size: 2.2rem; font-weight: bold; text-align: center; border: 3px solid var(--primary-color); border-radius: 12px; color: var(--secondary-color); }
+
+        /* --- 3. 多元測驗島 --- */
+        .quiz-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .quiz-card { background: #FAFDFC; border: 2px solid #E2EBE2; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .quiz-card:hover { border-color: var(--primary-color); transform: translateY(-2px); }
+        .quiz-card h3 { color: var(--text-color); margin-bottom: 5px; font-size: 1.2rem; }
+        .quiz-card p { font-size: 0.85rem; color: gray; }
+        
+        .setup-panel { background: #FAFDFC; border: 2px solid var(--secondary-color); border-radius: 15px; padding: 20px; margin-top: 15px; }
+        .setup-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; font-weight: bold; }
+        .cb-group { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px; }
+        .cb-label { background: white; border: 2px solid #D1DED1; padding: 8px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 1.05rem; }
+        .cb-label input { transform: scale(1.2); }
+        .setup-inline { display: flex; align-items: center; gap: 10px; margin-top: 5px;}
+        .setup-inline select, .setup-inline input { padding: 6px 12px; font-size: 1rem; border-radius: 6px; border: 1px solid #CCC; }
+
+        .game-play-zone { text-align: center; display: none; }
+        .game-header { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #E2EBE2; }
+        .game-question { font-size: 3.5rem; font-weight: bold; margin: 25px 0; color: var(--text-color); }
+        .game-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+        .game-opt-btn { padding: 15px; font-size: 1.5rem; font-weight: bold; border: 2px solid #D1DED1; border-radius: 12px; background: white; cursor: pointer; }
+        .combo-box { font-size: 1.3rem; color: var(--accent-color); font-weight: bold; height: 25px; margin-bottom: 5px; opacity: 0; }
+
+        /* --- 4. 學習紀錄 --- */
+        .dash-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .dash-card { background: #FAFDFC; border: 1px solid #E2EBE2; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; }
+        .dash-card div { font-size: 1.6rem; color: var(--primary-color); margin-top: 5px; }
+        .wrong-list-box { border: 1px solid #E2EBE2; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; background: #FFF5F5; margin-bottom: 15px; }
+        .wrong-item-tag { display: inline-block; padding: 6px 12px; background: white; border: 1px solid #FFA3A3; color: #CC0000; font-weight: bold; margin: 4px; border-radius: 8px; }
+
+        /* --- 5. 獎勵商店 --- */
+        .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .shop-item { border: 2px solid #E2EBE2; border-radius: 12px; padding: 15px; text-align: center; background: #FAFDFC; }
+        .shop-item h3 { font-size: 1.1rem; margin-bottom: 5px; }
+        .shop-item button { margin-top: 8px; padding: 6px 15px; background: var(--secondary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        /* 動態大字鼓勵反饋 */
+        .feedback-overlay { position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%); font-size: 3.5rem; font-weight: bold; pointer-events: none; opacity: 0; z-index: 100; text-align: center; line-height: 1.4; }
+        @keyframes pop { 0% { transform: scale(0); } 90% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>森林乘法冒險島 V6 🌲🌟</h1>
+        <p>多元遊戲化闖關·精熟九九乘法表</p>
+    </header>
+
+    <div class="status-bar">
+        <span>冒險進度：<span id="max-unlock-txt" style="color:var(--primary-color)">2 的乘法</span></span>
+        <span class="coin-count">冒險金幣：<span id="coin-display">0</span> 個</span>
+        <span class="sync-indicator" id="sync-status">☁️ 正在連線雲端...</span>
+    </div>
+
+    <nav>
+        <button onclick="switchView('learn')" id="nav-learn" class="active">🌳 1.學習島</button>
+        <button onclick="switchView('practice')" id="nav-practice">🎯 2.多元練習</button>
+        <button onclick="switchView('quiz')" id="nav-quiz">⚔️ 3.多元測驗</button>
+        <button onclick="switchView('dash')" id="nav-dash">📊 4.學習紀錄</button>
+        <button onclick="switchView('shop')" id="nav-shop">🏪 5.獎勵商店</button>
+    </nav>
+
+    <main>
+        <div id="view-learn" class="view active">
+            <h2 class="section-title">🌴 乘法大鍵盤自主學習</h2>
+            <div class="island-map" id="learn-island-map"></div>
+            
+            <p style="font-weight:bold; margin-bottom:5px; text-align:center;">💡 快速點選你想看的題目：</p>
+            <div class="quick-matrix-grid" id="quick-matrix-grid"></div>
+
+            <div class="learn-board">
+                <div id="learn-equation" style="font-size: 2.5rem; font-weight: bold; margin: 5px 0; color: var(--primary-color);">請點選上方方框</div>
+                <p id="learn-explain-text" style="font-size:1.2rem; font-weight:bold; color:#666; margin-bottom:10px;"></p>
+                <div id="matrix-container"></div>
+                <div style="margin-top:10px;" id="learn-reward-zone"></div>
+            </div>
+        </div>
+
+        <div id="view-practice" class="view">
+            <h2 class="section-title">🎯 直觀式乘法互動練習</h2>
+            <div class="practice-setting-panel">
+                <label>🎯 選擇你想練習的數字模組：</label>
+                <select id="practice-module-select" onchange="changePracticeModule()">
+                    <option value="all">目前已解鎖全部範圍</option>
+                    <option value="2">2 的乘法題組</option>
+                    <option value="3">3 的乘法題組</option>
+                    <option value="4">4 的乘法題組</option>
+                    <option value="5">5 的乘法題組</option>
+                    <option value="6">6 的乘法題組</option>
+                    <option value="7">7 的乘法題組</option>
+                    <option value="8">8 的乘法題組</option>
+                    <option value="9">9 的乘法題組</option>
+                </select>
+            </div>
+
+            <div class="sub-nav">
+                <button onclick="switchPracticeMode('match')" id="btn-p-match" class="active">🤝 1.多對多連連看</button>
+                <button onclick="switchPracticeMode('drag')" id="btn-p-drag">🕳️ 2.拖曳填空題</button>
+                <button onclick="switchPracticeMode('balloon')" id="btn-p-balloon">🎈 3.正確答案氣球</button>
+                <button onclick="switchPracticeMode('keyboard')" id="btn-p-keyboard">⌨️ 4.手動輸入挑戰</button>
+            </div>
+            
+            <p style="text-align:center; color: var(--secondary-color); font-weight:bold; margin-bottom:15px;">💡 每答對過關，都可以獲得金幣 +1 個獎勵喔！</p>
+            <div class="practice-zone" id="practice-content-area"></div>
+        </div>
+
+        <div id="view-quiz" class="view">
+            <div id="quiz-menu-zone">
+                <h2 class="section-title">⚔️ 乘法冒險遊戲闖關</h2>
+                <div class="quiz-menu-grid">
+                    <div class="quiz-card" onclick="openQuizSetup('marathon')">
+                        <h3>🎯 正確率馬拉松</h3>
+                        <p>固定題數，沉穩作答拿3顆星。達到 80% 正確率可解鎖下一關島嶼！</p>
+                    </div>
+                    <div class="quiz-card" onclick="openQuizSetup('timeAttack')">
+                        <h3>⏱️ 限時拆彈專家</h3>
+                        <p>刺激驚險！可自訂多選題組與秒數，在爆炸前拆除越多炸彈越好！</p>
+                    </div>
+                    <div class="quiz-card" onclick="startSpecialQuiz('boss')">
+                        <h3>👹 終極數字魔王關</h3>
+                        <p>隨機出現大魔王，連續答對 5 題才能將魔王擊敗獲得黃金徽章！</p>
+                    </div>
+                    <div class="quiz-card" onclick="startSpecialQuiz('treasure')">
+                        <h3>🎁 驚喜機率寶箱關</h3>
+                        <p>純隨機配題，答對一題可獲得多倍金幣獎勵！</p>
+                    </div>
+                    <div class="quiz-card" onclick="startSpecialQuiz('star')">
+                        <h3>⭐ 星星守護者挑戰</h3>
+                        <p>生命制！只有3顆心心，看看你在答錯前能堅持到第幾題?</p>
+                    </div>
+                </div>
+
+                <div id="quiz-setup-panel" class="setup-panel" style="display:none;">
+                    <h3 style="margin-bottom:10px; color:var(--secondary-color);" id="setup-panel-title">自訂挑戰設定</h3>
+                    <div class="setup-row">
+                        <label>🎯 欲練習的題組（可複選多個）：</label>
+                        <div class="cb-group" id="setup-checkbox-group"></div>
+                    </div>
+                    <div class="setup-inline" id="setup-time-row">
+                        <label>⏱️ 限時時間：</label>
+                        <select id="setup-time">
+                            <option value="30">30 秒</option>
+                            <option value="60" selected>60 秒</option>
+                            <option value="90">90 秒</option>
+                        </select>
+                    </div>
+                    <div class="setup-inline" id="setup-count-row">
+                        <label>📝 挑戰題數：</label>
+                        <input type="number" id="setup-count" value="10" min="5" max="30" style="width:60px;"> 題
+                    </div>
+                    <button class="styled-btn" style="background:var(--secondary-color); margin-top:15px;" onclick="confirmAndStartQuiz()">開始冒險 🚀</button>
+                </div>
+            </div>
+
+            <div id="quiz-game-zone" class="game-play-zone">
+                <div class="game-header">
+                    <span id="g-title">遊戲模式</span>
+                    <span id="g-timer">時間：--</span>
+                    <span id="g-progress">進度：0</span>
+                </div>
+                <div class="combo-box" id="g-combo">Combo 1 🔥</div>
+                <div class="game-question" id="g-question">4 × 6 = ?</div>
+                <div class="game-options" id="g-options"></div>
+                <button class="styled-btn" style="margin-top:20px; background:#999;" onclick="exitQuiz()">放棄退出</button>
+            </div>
+        </div>
+
+        <div id="view-dash" class="view">
+            <h2 class="section-title">📊 小勇士學習成就儀表板</h2>
+            <div class="dash-summary">
+                <div class="dash-card">總共答題次數<div><span id="dash-total-q">0</span> 次</div></div>
+                <div class="dash-card">累積答對次數<div><span id="dash-correct-q">0</span> 次</div></div>
+                <div class="dash-card">累積練習時間<div><span id="dash-time-txt">0分 0秒</span></div></div>
+                <div class="dash-card">目前金幣數量<div style="color:var(--secondary-color)"><span id="dash-coins">0</span> 個</div></div>
+            </div>
+
+            <div style="background:#FAFDFC; border:1px solid #E2EBE2; border-radius:12px; padding:15px; margin-bottom:20px;">
+                <h3>🔴 孩子在測驗中算錯的弱點題目 (<span id="dash-wrong-count">0</span>)：</h3>
+                <p style="color:gray; font-size:0.9rem; margin-bottom:10px;">系統會在下方特訓中針對這些題目進行魔鬼加強！</p>
+                <div id="dash-wrong-list" class="wrong-list-box"></div>
+                <button class="styled-btn" style="background:var(--accent-color);" onclick="startWrongQuestionTraining()">🚀 啟動「錯題特訓模式」</button>
+            </div>
+        </div>
+
+        <div id="view-shop" class="view">
+            <h2 class="section-title">🏪 皇家大酬賓實體獎勵商店</h2>
+            <p style="text-align:center; color:gray; margin-bottom:20px;">達到對應金幣即可找爸爸媽媽兌換實體願望獎勵！</p>
+            <div class="shop-grid" id="shop-carousel-grid"></div>
+        </div>
+    </main>
+
+    <div id="feedback-effect" class="feedback-overlay"></div>
+
+    <script>
+        // 【⚠️ 重要雲端設定】請將下方網址替換成您在步驟二生成的 GAS 網址！
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec";
+        const USER_ID = "hero123"; 
+
+        // --- 全域狀態 ---
+        let state = {
+            coins: 0, unlockedIsland: 2, currentSelectedIsland: 2, currentSelectedNum: 1,
+            wrongQuestions: [], stats: { total: 0, correct: 0, totalSeconds: 0 }, learnedItems: {} 
+        };
+
+        let quiz = {
+            mode: '', selectedBases: [], timeLeft: 60, totalCount: 10,
+            currentIndex: 0, correctCount: 0, combo: 0, lives: 3, currentAns: 0, timerInterval: null, list: []
+        };
+
+        let practice = {
+            mode: 'match', moduleSelected: 'all', base: 2, mult: 3, ans: 6,
+            matchData: { leftList: [], rightList: [], selectedLeft: null, solvedPairs: 0 }
+        };
+
+        const praises = ["太厲害了！🌟", "你太棒了！❤️", "乘法小達人！🔥", "算得真快！⚡", "一級棒喔！👍", "大獲全勝！✨"];
+        
+        // 🌟 完全採用您規劃的 10 項黃金原物料商店項目
+        const shopItems = [
+            { id: 1, name: "🛍️ 超商商品任選一項 (限額50元內)", cost: 500 },
+            { id: 2, name: "📺 多看卡通 15 分鐘", cost: 500 },
+            { id: 3, name: "🎯 夜市遊戲一次", cost: 500 },
+            { id: 4, name: "🍪 全聯任選 100 元零食", cost: 1000 },
+            { id: 5, name: "🎰 湯姆熊遊玩一次 (限額100元內)", cost: 2000 },
+            { id: 6, name: "🎳 保齡球遊玩一次", cost: 5000 },
+            { id: 7, name: "🥩 饗食天堂餐券", cost: 10000 },
+            { id: 8, name: "✏️ 9乘9文具店任選文具一項 (限額100元內)", cost: 1000 },
+            { id: 9, name: "🤖 鋼彈一隻 (限額1000元內)", cost: 10000 },
+            { id: 10, name: "📖 書局挑一本喜歡的書 (限額500元內)", cost: 5000 }
+        ];
+
+        function setSyncStatus(txt) {
+            document.getElementById('sync-status').innerText = txt;
+        }
+
+        // 下載雲端紀錄
+        function loadProgressFromCloud() {
+            setSyncStatus("☁️ 正在同步雲端資料...");
+            fetch(`${GAS_API_URL}?userId=${USER_ID}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        state.coins = data.coins;
+                        state.unlockedIsland = data.unlockedIsland;
+                        state.stats.total = data.total;
+                        state.stats.correct = data.correct;
+                        state.stats.totalSeconds = data.totalSeconds;
+                        state.wrongQuestions = data.wrongQuestions || [];
+                        
+                        setSyncStatus("☁️ 雲端同步完成");
+                        renderLearnIslands();
+                        renderLearnMatrixButtons();
+                        triggerLearnRender(false);
+                        syncUI();
+                    } else {
+                        setSyncStatus("❌ 找不到此使用者帳號");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    setSyncStatus("❌ 網路連線或 API 設定錯誤");
+                });
+        }
+
+        // 上傳雲端紀錄
+        function saveProgressToCloud() {
+            setSyncStatus("⚡ 正在更新至雲端...");
+            const payload = {
+                userId: USER_ID, coins: state.coins, unlockedIsland: state.unlockedIsland,
+                total: state.stats.total, correct: state.stats.correct,
+                totalSeconds: state.stats.totalSeconds, wrongQuestions: state.wrongQuestions
+            };
+
+            fetch(GAS_API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => { setSyncStatus("☁️ 進度已同步至試算表"); })
+            .catch(err => { console.error(err); setSyncStatus("❌ 上傳雲端失敗"); });
+        }
+
+        // 時間與定時存檔
+        setInterval(() => {
+            state.stats.totalSeconds++;
+            const mins = Math.floor(state.stats.totalSeconds / 60);
+            const secs = state.stats.totalSeconds % 60;
+            const el = document.getElementById('dash-time-txt');
+            if(el) el.innerText = `${mins}分 ${secs}秒`;
+            
+            // 每 30 秒自動在背景默默存檔一次
+            if (state.stats.totalSeconds % 30 === 0) saveProgressToCloud();
+        }, 1000);
+
+        window.onload = function() {
+            renderShop();
+            renderSetupCheckboxes();
+            if (GAS_API_URL === "YOUR_GAS_API_URL") {
+                setSyncStatus("⚠️ 請填入您的 GAS API 網址！");
+                renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(false); syncUI();
+            } else {
+                loadProgressFromCloud();
+            }
+        };
+
+        function syncUI() {
+            document.getElementById('coin-display').innerText = state.coins;
+            document.getElementById('max-unlock-txt').innerText = state.unlockedIsland + " 的乘法";
+            document.getElementById('dash-total-q').innerText = state.stats.total;
+            document.getElementById('dash-correct-q').innerText = state.stats.correct;
+            document.getElementById('dash-wrong-count').innerText = state.wrongQuestions.length;
+            document.getElementById('dash-coins').innerText = state.coins;
+            
+            const listContainer = document.getElementById('dash-wrong-list');
+            if(state.wrongQuestions.length === 0) {
+                listContainer.innerHTML = '<span style="color:gray">目前沒有測驗錯題，太棒了！保持下去！</span>';
+            } else {
+                listContainer.innerHTML = '';
+                state.wrongQuestions.forEach(q => {
+                    listContainer.innerHTML += `<span class="wrong-item-tag">${q.base} × ${q.mult}</span>`;
+                });
+            }
+        }
+
+        function switchView(viewName) {
+            clearInterval(quiz.timerInterval);
+            document.getElementById('quiz-game-zone').style.display = 'none';
+            document.getElementById('quiz-menu-zone').style.display = 'block';
+            document.getElementById('quiz-setup-panel').style.display = 'none';
+
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            
+            let targetId = `view-${viewName}`;
+            document.getElementById(targetId).classList.add('active');
+            document.getElementById(`nav-${viewName}`).classList.add('active');
+
+            if(viewName === 'practice') { generateNewPracticeQuestion(); loadPracticeGameUI(); }
+            syncUI();
+            saveProgressToCloud(); // 切換分頁主動存檔一次
+        }
+
+        // ================= 1. 學習島 =================
+        function renderLearnIslands() {
+            const container = document.getElementById('learn-island-map');
+            if(!container) return; container.innerHTML = '';
+            for(let i=2; i<=9; i++) {
+                let btn = document.createElement('button');
+                btn.className = `island-btn ${i === state.currentSelectedIsland ? 'active' : ''}`;
+                btn.innerText = `<${i}的乘法>`;
+                btn.onclick = () => {
+                    state.currentSelectedIsland = i;
+                    renderLearnIslands(); renderLearnMatrixButtons(); triggerLearnRender(true);
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        function renderLearnMatrixButtons() {
+            const container = document.getElementById('quick-matrix-grid');
+            if(!container) return; container.innerHTML = '';
+            const b = state.currentSelectedIsland;
+            for(let i=1; i<=9; i++) {
+                let btn = document.createElement('button');
+                btn.className = `quick-num-btn ${i === state.currentSelectedNum ? 'active' : ''}`;
+                btn.innerText = `${b}×${i}`;
+                btn.onclick = () => {
+                    state.currentSelectedNum = i;
+                    renderLearnMatrixButtons(); triggerLearnRender(true);
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        function triggerLearnRender(addCoinEarned) {
+            const b = state.currentSelectedIsland;
+            const m = state.currentSelectedNum;
+            const ans = b * m;
+            
+            const eqEl = document.getElementById('learn-equation');
+            if(!eqEl) return; eqEl.innerText = `${b} × ${m} = ${ans}`;
+            document.getElementById('learn-explain-text').innerText = `💡 畫面呈現：一排有 ${b} 個，總共有 ${m} 排。`;
+            
+            const matrix = document.getElementById('matrix-container');
+            matrix.innerHTML = ''; matrix.className = 'matrix-display';
+            matrix.style.gridTemplateColumns = `repeat(${b}, 34px)`;
+            
+            for(let r = 1; r <= m; r++) {
+                for(let c = 1; c <= b; c++) {
+                    let d = document.createElement('div');
+                    if (r === 1) { d.className = 'dot'; d.innerText = c; } 
+                    else if (c === 1) { d.className = 'dot'; d.innerText = r; } 
+                    else { d.className = 'dot no-num'; d.innerText = ''; }
+                    matrix.appendChild(d);
+                }
+            }
+
+            if (addCoinEarned) {
+                const key = `${b}x${m}`;
+                const rewardZone = document.getElementById('learn-reward-zone');
+                if(!state.learnedItems[key]) {
+                    state.coins += 1; state.learnedItems[key] = true;
+                    rewardZone.innerHTML = `<span style="color:var(--primary-color); font-weight:bold;">✨ 第一次探索此題目圖形！獲得獎勵金幣 +1 個！</span>`;
+                    showPraiseFX("金幣 +1"); syncUI(); saveProgressToCloud();
+                } else {
+                    rewardZone.innerHTML = `<span style="color:gray; font-size:0.9rem;">🌱 你已經看過這個圖解囉，溫故知新棒棒噠！</span>`;
+                }
+            }
+        }
+
+        // ================= 2. 多元練習島 =================
+        function changePracticeModule() {
+            practice.moduleSelected = document.getElementById('practice-module-select').value;
+            generateNewPracticeQuestion(); loadPracticeGameUI();
+        }
+
+        function generateNewPracticeQuestion() {
+            let b = practice.moduleSelected === 'all' ? Math.floor(Math.random() * (state.unlockedIsland - 1)) + 2 : parseInt(practice.moduleSelected);
+            let m = Math.floor(Math.random() * 9) + 1;
+            practice.base = b; practice.mult = m; practice.ans = b * m;
+
+            if(practice.mode === 'match') {
+                let uniquePairs = [];
+                while(uniquePairs.length < 3) {
+                    let testB = practice.moduleSelected === 'all' ? Math.floor(Math.random()*(state.unlockedIsland-1))+2 : parseInt(practice.moduleSelected);
+                    let testM = Math.floor(Math.random() * 9) + 1;
+                    if(!uniquePairs.some(p => p.b === testB && p.m === testM)) uniquePairs.push({ b: testB, m: testM, ans: testB * testM });
+                }
+                practice.matchData.leftList = uniquePairs.map((p, index) => ({ id: index, txt: `${p.b}×${p.m}`, ans: p.ans }));
+                practice.matchData.rightList = uniquePairs.map((p, index) => ({ id: index, ans: p.ans })).sort(() => Math.random() - 0.5);
+                practice.matchData.selectedLeft = null; practice.matchData.solvedPairs = 0;
+            }
+        }
+
+        function loadPracticeGameUI() {
+            const area = document.getElementById('practice-content-area');
+            if(!area) return; area.innerHTML = '';
+            const b = practice.base; const m = practice.mult; const ans = practice.ans;
+
+            if(practice.mode === 'match') {
+                let leftHtml = '', rightHtml = '';
+                practice.matchData.leftList.forEach(l => { leftHtml += `<div class="mm-box" id="mm-l-${l.id}" onclick="clickMultiMatchLeft(${l.id})">${l.txt}</div>`; });
+                practice.matchData.rightList.forEach(r => { rightHtml += `<div class="mm-box" id="mm-r-${r.ans}" onclick="clickMultiMatchRight(${r.ans})">${r.ans}</div>`; });
+                area.innerHTML = `
+                    <div class="practice-rule-title">🤝 遊戲方式：請點擊左邊題目(變橘色) ➜ 再點擊右邊正確答案進行連線，全對就過關！</div>
+                    <div class="multi-match-board"><div class="mm-col">${leftHtml}</div><div class="mm-col">${rightHtml}</div></div>`;
+            } 
+            else if(practice.mode === 'drag') {
+                let fake1 = ans + 3; let fake2 = ans - 2; if(fake2 <= 0) fake2 = ans + 6;
+                area.innerHTML = `
+                    <div class="practice-rule-title">🕳️ 遊戲方式：看清公式，點擊下方正確的數字方塊填入空格</div>
+                    <div class="drag-container"><span>${b} × ${m} = </span><div class="drop-target" id="drop-box">?</div></div>
+                    <div class="drag-options">
+                        <div class="drag-item" onclick="clickDragOpt(${ans}, ${ans})">${ans}</div>
+                        <div class="drag-item" onclick="clickDragOpt(${fake1}, ${ans})">${fake1}</div>
+                        <div class="drag-item" onclick="clickDragOpt(${fake2}, ${ans})">${fake2}</div>
+                    </div>`;
+            }
+            else if(practice.mode === 'balloon') {
+                let fake1 = ans + 4; let fake2 = ans - 3; if(fake2 <= 0) fake2 = ans + 5;
+                area.innerHTML = `
+                    <div class="practice-rule-title">🎈 遊戲方式：請用滑鼠或手指點擊下方正確答案的氣球把它戳破</div>
+                    <div class="practice-main-q">${b} × ${m} = ?</div>
+                    <div class="balloon-grid">
+                        <div class="balloon" style="background:#6FA8DC" onclick="clickBalloon(${fake1}, ${ans})">${fake1}</div>
+                        <div class="balloon" style="background:#E06666" onclick="clickBalloon(${ans}, ${ans})">${ans}</div>
+                        <div class="balloon" style="background:#FFD666" onclick="clickBalloon(${fake2}, ${ans})">${fake2}</div>
+                    </div>`;
+            }
+            else if(practice.mode === 'keyboard') {
+                area.innerHTML = `
+                    <div class="practice-rule-title">⌨️ 遊戲方式：在框框內輸入答案，完成後按 [Enter鍵] 或點擊 [送出]</div>
+                    <div class="practice-main-q">${b} × ${m} = ?</div>
+                    <div class="input-practice-box">
+                        <input type="number" id="p-user-input" class="huge-input" placeholder="?" autofocus />
+                        <button class="styled-btn" style="background:var(--secondary-color);" onclick="checkKeyboardAnswer(${ans})">送出答案</button>
+                    </div>`;
+                document.getElementById('p-user-input').addEventListener('keydown', function(e) { if(e.key === 'Enter') checkKeyboardAnswer(ans); });
+                document.getElementById('p-user-input').focus();
+            }
+        }
+
+        function clickMultiMatchLeft(id) {
+            if(document.getElementById(`mm-l-${id}`).classList.contains('linked')) return;
+            practice.matchData.leftList.forEach(l => { let el = document.getElementById(`mm-l-${l.id}`); if(el) el.classList.remove('selected'); });
+            document.getElementById(`mm-l-${id}`).classList.add('selected'); practice.matchData.selectedLeft = id;
+        }
+
+        function clickMultiMatchRight(ansVal) {
+            if(practice.matchData.selectedLeft === null) return;
+            if(document.getElementById(`mm-r-${ansVal}`).classList.contains('linked')) return;
+
+            state.stats.total++;
+            let leftItem = practice.matchData.leftList.find(l => l.id === practice.matchData.selectedLeft);
+            if(leftItem && leftItem.ans === ansVal) {
+                state.stats.correct++;
+                document.getElementById(`mm-l-${leftItem.id}`).classList.remove('selected');
+                document.getElementById(`mm-l-${leftItem.id}`).classList.add('linked');
+                document.getElementById(`mm-r-${ansVal}`).classList.add('linked');
+                practice.matchData.solvedPairs++; practice.matchData.selectedLeft = null;
+                showPraiseFX("答對了！👏"); if(practice.matchData.solvedPairs === 3) earnPracticeReward();
+            } else { showPraiseFX("❌ 不太對喔"); }
+        }
+
+        function earnPracticeReward() {
+            state.coins += 1; let randPraise = praises[Math.floor(Math.random() * praises.length)];
+            showPraiseFX(`${randPraise}<br><span style='font-size:1.5rem;color:var(--secondary-color);'>金幣 +1</span>`);
+            syncUI(); saveProgressToCloud();
+            setTimeout(() => { generateNewPracticeQuestion(); loadPracticeGameUI(); }, 1100);
+        }
+
+        function switchPracticeMode(mode) {
+            practice.mode = mode;
+            document.querySelectorAll('.sub-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-p-${mode}`).classList.add('active');
+            generateNewPracticeQuestion(); loadPracticeGameUI();
+        }
+
+        function clickDragOpt(chosen, correct) {
+            state.stats.total++;
+            if(chosen === correct) { state.stats.correct++; document.getElementById('drop-box').innerText = chosen; earnPracticeReward(); } 
+            else { showPraiseFX("❌ 不對喔，再想一想！"); }
+        }
+
+        function clickBalloon(chosen, correct) {
+            state.stats.total++;
+            if(chosen === correct) { state.stats.correct++; earnPracticeReward(); } 
+            else { showPraiseFX("🎈 答案錯囉！"); }
+        }
+
+        function checkKeyboardAnswer(correctAns) {
+            const inputEl = document.getElementById('p-user-input'); const userAns = parseInt(inputEl.value); if(isNaN(userAns)) return;
+            state.stats.total++;
+            if(userAns === correctAns) { state.stats.correct++; earnPracticeReward(); } 
+            else { showPraiseFX("❌ 算錯囉，再算一遍！"); inputEl.value = ''; inputEl.focus(); }
+        }
+
+        // ================= 3. 多元測驗島 =================
+        function renderSetupCheckboxes() {
+            const container = document.getElementById('setup-checkbox-group'); if(!container) return; container.innerHTML = '';
+            for(let i = 2; i <= 9; i++) {
+                container.innerHTML += `<label class="cb-label"><input type="checkbox" name="setup-base-cb" value="${i}" ${i==2?'checked':''}> ${i} 的乘法</label>`;
+            }
+        }
+
+        function openQuizSetup(mode) {
+            quiz.mode = mode; document.getElementById('quiz-setup-panel').style.display = 'block';
+            document.getElementById('setup-panel-title').innerText = mode === 'marathon' ? '自訂：正確率馬拉松設定' : '自訂：限時拆彈專家設定';
+            document.getElementById('setup-time-row').style.display = mode === 'timeAttack' ? 'flex' : 'none';
+            document.getElementById('setup-count-row').style.display = mode === 'marathon' ? 'flex' : 'none';
+        }
+
+        function confirmAndStartQuiz() {
+            const checkboxes = document.querySelectorAll('input[name="setup-base-cb"]:checked');
+            quiz.selectedBases = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            if(quiz.selectedBases.length === 0) { alert('請至少勾選一個題組！'); return; }
+            quiz.timeLeft = parseInt(document.getElementById('setup-time').value);
+            quiz.totalCount = parseInt(document.getElementById('setup-count').value);
+            document.getElementById('quiz-setup-panel').style.display = 'none';
+            buildAndRunQuiz();
+        }
+
+        function startSpecialQuiz(mode) {
+            quiz.mode = mode; quiz.selectedBases = [];
+            for(let i=2; i<=state.unlockedIsland; i++) quiz.selectedBases.push(i);
+            document.getElementById('quiz-setup-panel').style.display = 'none';
+            buildAndRunQuiz();
+        }
+
+        function buildAndRunQuiz() {
+            document.getElementById('quiz-menu-zone').style.display = 'none'; document.getElementById('quiz-game-zone').style.display = 'block';
+            quiz.currentIndex = 0; quiz.correctCount = 0; quiz.combo = 0; quiz.lives = 3;
+            
+            let tempPool = [];
+            quiz.selectedBases.forEach(b => { for(let m=1; m<=9; m++) tempPool.push({base: b, mult: m}); });
+            tempPool.sort(() => Math.random() - 0.5);
+
+            if(quiz.mode === 'marathon') { quiz.list = tempPool.slice(0, quiz.totalCount); setupGameHeader('🎯 馬拉松', '不限時', `進度: 1/${quiz.list.length}`); } 
+            else if(quiz.mode === 'timeAttack') { quiz.list = tempPool; setupGameHeader('⏱️ 拆彈專家', `${quiz.timeLeft}秒`, `答對: 0 題`); startQuizTimer(); } 
+            else if(quiz.mode === 'boss') { quiz.list = tempPool.slice(0, 5); setupGameHeader('👹 大魔王關', '生存制', `魔王血量: ❤️❤️❤️❤️❤️`); } 
+            else if(quiz.mode === 'treasure') { quiz.list = tempPool.slice(0, 8); setupGameHeader('🎁 寶箱關', '雙倍金幣', `進度: 1/8`); } 
+            else if(quiz.mode === 'star') { quiz.list = tempPool; setupGameHeader('⭐ 星星守護者', `生命: ❤️❤️❤️`, `已守護: 0 關`); }
+            runNextQuestion();
+        }
+
+        function startQuizTimer() { quiz.timerInterval = setInterval(() => { quiz.timeLeft--; document.getElementById('g-timer').innerText = `${quiz.timeLeft}秒`; if(quiz.timeLeft <= 0) finishQuizGame(); }, 1000); }
+        function setupGameHeader(title, timer, prog) { document.getElementById('g-title').innerText = title; document.getElementById('g-timer').innerText = timer; document.getElementById('g-progress').innerText = prog; }
+
+        function runNextQuestion() {
+            let q;
+            if((quiz.mode === 'timeAttack' || quiz.mode === 'star') && quiz.selectedBases.length > 0) {
+                let b = quiz.selectedBases[Math.floor(Math.random() * quiz.selectedBases.length)]; let m = Math.floor(Math.random() * 9) + 1; q = { base: b, mult: m };
+            } else {
+                if(quiz.currentIndex >= quiz.list.length) { finishQuizGame(); return; } q = quiz.list[quiz.currentIndex];
+            }
+
+            if(quiz.mode !== 'wrong_train' && state.wrongQuestions.length > 0 && Math.random() > 0.75) q = state.wrongQuestions[Math.floor(Math.random()*state.wrongQuestions.length)];
+
+            quiz.currentAns = q.base * q.mult; document.getElementById('g-question').innerText = `${q.base} × ${q.mult} = ?`;
+            let opts = [quiz.currentAns];
+            while(opts.length < 4) {
+                let fake = (q.base + Math.floor(Math.random()*3-1)) * (q.mult + Math.floor(Math.random()*3-1));
+                if(fake <= 0 || opts.includes(fake)) fake = Math.floor(Math.random()*75)+1; if(!opts.includes(fake)) opts.push(fake);
+            }
+            opts.sort(() => Math.random() - 0.5);
+            const grid = document.getElementById('g-options'); grid.innerHTML = '';
+            opts.forEach(o => { let b = document.createElement('button'); b.className = 'game-opt-btn'; b.innerText = o; b.onclick = () => answerGameQuestion(o, q); grid.appendChild(b); });
+        }
+
+        function answerGameQuestion(chosen, originalQ) {
+            state.stats.total++; let isCorrect = (chosen === quiz.currentAns);
+            if(isCorrect) {
+                state.stats.correct++; quiz.correctCount++; quiz.combo++; showPraiseFX("🎉 太棒了");
+                if(quiz.combo >= 2) { let cb = document.getElementById('g-combo'); cb.innerText = `Combo ${quiz.combo} 🔥 衝啊！`; cb.style.opacity = 1; }
+            } else {
+                quiz.combo = 0; document.getElementById('g-combo').style.opacity = 0; showPraiseFX("❌ 算錯囉"); quiz.lives--;
+                if(quiz.mode !== 'wrong_train') { if(!state.wrongQuestions.some(x => x.base === originalQ.base && x.mult === originalQ.mult)) state.wrongQuestions.push(originalQ); }
+            }
+            if(quiz.mode === 'wrong_train' && isCorrect) state.wrongQuestions = state.wrongQuestions.filter(x => !(x.base === originalQ.base && x.mult === originalQ.mult));
+            quiz.currentIndex++;
+
+            if(quiz.mode === 'marathon') { document.getElementById('g-progress').innerText = `進度: ${quiz.currentIndex + 1}/${quiz.list.length}`; } 
+            else if(quiz.mode === 'timeAttack') { document.getElementById('g-progress').innerText = `答對: ${quiz.correctCount} 題`; } 
+            else if(quiz.mode === 'boss') { let heart = '❤️'.repeat(Math.max(0, 5 - quiz.correctCount)); document.getElementById('g-progress').innerText = `魔王血量: ${heart || '💀'}`; if(quiz.correctCount >= 5) { finishQuizGame(); return; } } 
+            else if(quiz.mode === 'wrong_train') { document.getElementById('g-progress').innerText = `進度: ${quiz.currentIndex + 1}/${quiz.list.length}`; }
+            runNextQuestion();
+        }
+
+        function finishQuizGame() {
+            clearInterval(quiz.timerInterval); document.getElementById('quiz-game-zone').style.display = 'none'; document.getElementById('quiz-menu-zone').style.display = 'block';
+            let prize = quiz.correctCount * 1; let msg = `🏁 挑戰結束！你答對了 ${quiz.correctCount} 題，獲得金幣 +${prize} 個！`;
+
+            if(quiz.mode === 'marathon' && quiz.correctCount >= quiz.list.length * 0.8 && state.unlockedIsland < 9) {
+                state.unlockedIsland++; msg += `\n解鎖更高難度「${state.unlockedIsland}的乘法」範圍囉！`; renderLearnIslands();
+            }
+            state.coins += prize; syncUI(); saveProgressToCloud(); alert(msg);
+        }
+
+        function exitQuiz() { if(confirm('確定要放棄離開本次測驗嗎？')) finishQuizGame(); }
+
+        // ================= 4. 錯題特訓模式 =================
+        function startWrongQuestionTraining() {
+            if(state.wrongQuestions.length === 0) { alert('目前沒有錯題紀錄喔！'); return; }
+            quiz.mode = 'wrong_train'; quiz.list = [...state.wrongQuestions].sort(() => Math.random() - 0.5);
+            
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-quiz').classList.add('active'); document.getElementById('nav-quiz').classList.add('active');
+            document.getElementById('quiz-menu-zone').style.display = 'none'; document.getElementById('quiz-setup-panel').style.display = 'none';
+            document.getElementById('quiz-game-zone').style.display = 'block';
+            buildAndRunQuiz();
+        }
+
+        // ================= 5. 商店 =================
+        function renderShop() {
+            const grid = document.getElementById('shop-carousel-grid'); if(!grid) return; grid.innerHTML = '';
+            shopItems.forEach(item => {
+                grid.innerHTML += `<div class="shop-item"><h3>${item.name}</h3><p style="color:var(--secondary-color); font-weight:bold;">${item.cost} 個金幣</p><button onclick="buyShopItem('${item.name}', ${item.cost})">點我兌換</button></div>`;
+            });
+        }
+
+        function buyShopItem(name, cost) {
+            if(state.coins >= cost) {
+                state.coins -= cost; syncUI(); saveProgressToCloud();
+                alert(`🎁 兌換成功！獲得【${name}】\n快去找爸爸媽媽兌現吧！`);
+            } else { alert(`您的金幣還不夠兌換此項目喔！繼續努力累積吧！`); }
+        }
+
+        function showPraiseFX(text) {
+            const fx = document.getElementById('feedback-effect'); if(!fx) return; fx.innerHTML = text;
+            fx.style.color = text.includes('❌') ? 'var(--accent-color)' : 'var(--primary-color)';
+            fx.style.opacity = 1; fx.style.transform = 'translate(-50%, -50%) scale(1.2)'; fx.style.transition = 'none';
+            setTimeout(() => { fx.style.transition = 'all 0.5s ease-out'; fx.style.opacity = 0; fx.style.transform = 'translate(-50%, -80%) scale(0.8)'; }, 550);
+        }
+    </script>
+</body>
+</html>
