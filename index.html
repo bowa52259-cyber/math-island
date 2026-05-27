@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>森林乘法冒險島 V6.4 終極完美版 🌲🌟</title>
+    <title>森林乘法冒險島 V6.5 遊戲音效BGM雙人雲端版 🌲🌟</title>
     <style>
         :root {
             --primary-color: #799F7A; /* 森林綠 */
@@ -316,7 +316,7 @@
 
     <script>
         // 【⚠️ 重要設定】請填入您的 GAS API 網址！
-        const GAS_API_URL = "YOUR_GAS_API_URL";
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec";
         let CURRENT_USER = ""; 
 
         // --- 全域狀態 ---
@@ -351,8 +351,11 @@
             { id: 10, name: "📖 書局挑一本喜歡的書 (限額500元內)", cost: 5000 }
         ];
 
-        // ================= 音效產生器 =================
+        // ================= 音效與背景音樂產生器核心 =================
         let audioCtx = null;
+        let bgmInterval = null; // 控制背景音樂節奏的計時器
+        let bgmStep = 0;        // 追蹤音樂播到第幾拍
+
         function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } }
 
         function playCorrectSound() {
@@ -394,15 +397,63 @@
             } catch(e) {}
         }
 
+        // 🎵 獨創：動態循環背景音樂生成函數 (模擬復古紅白機遊戲)
+        function startQuizBGM() {
+            stopQuizBGM();
+            initAudio();
+            bgmStep = 0;
+            
+            // 基礎循環速度：每拍 240 毫秒
+            // Combo 越高，音樂節奏會自動縮短（音樂越急促、速度越快）
+            let baseTempo = 240; 
+            let currentTempo = Math.max(150, baseTempo - (quiz.combo * 12)); 
+
+            // 經典和弦音符池
+            const bassLine = [261.63, 329.63, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23]; // C大調循環音階
+
+            bgmInterval = setInterval(() => {
+                try {
+                    let now = audioCtx.currentTime;
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    // 根據 Combo 數量自動將音調提高，創造刺激緊迫感
+                    let freqModifier = 1 + (Math.min(5, quiz.combo) * 0.05); 
+                    let targetFreq = bassLine[bgmStep % bassLine.length] * freqModifier;
+                    
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    
+                    // 柔和的音量，只當背景音樂，不干擾作答
+                    gain.gain.setValueAtTime(0.02, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                    
+                    bgmStep++;
+                } catch(e){}
+            }, currentTempo);
+        }
+
+        function stopQuizBGM() {
+            if(bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
         // --- 登入控制 ---
         function selectHero(userId) {
             initAudio(); 
             CURRENT_USER = userId;
             document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('current-user-txt').innerText = userId === "hero123" ? "大寶 (hero123)" : "二寶 (hero456)";
+            document.getElementById('current-user-txt').innerText = userId === "hero123" ? "晨語 (hero123)" : "翊甯 (hero456)";
             
-            // 🌟 修正：一併初始化題組複選核取方塊，防止其鬧失蹤
             renderSetupCheckboxes();
+            renderShop(); // 🌟 修正：確保登入時就立刻在前端排出版面，商店明細絕不鬧失蹤
 
             if (GAS_API_URL !== "https://script.google.com/macros/s/AKfycbwNFcJMwBJW-ARB5EZQYhCUeCKN8mq4mxzDpVf6LG3FIVhwmMSpA80ezDSnK9oBqp3Ksg/exec") {
                 loadProgressFromCloud();
@@ -414,14 +465,13 @@
 
         function logoutHero() {
             if(confirm("確定要登出並換人玩嗎？系統會先安全存檔。")) {
+                stopQuizBGM();
                 saveProgressToCloud();
                 clearInterval(quiz.timerInterval);
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('current-user-txt').innerText = "未登入";
             }
         }
-
-        function setSyncStatus(txt) { document.getElementById('sync-status').innerText = txt; }
 
         // 下載雲端紀錄
         function loadProgressFromCloud() {
@@ -501,6 +551,7 @@
         }
 
         function switchView(viewName) {
+            stopQuizBGM(); // 只要切換大分頁就自動關閉背景音樂
             clearInterval(quiz.timerInterval);
             document.getElementById('quiz-game-zone').style.display = 'none';
             document.getElementById('quiz-menu-zone').style.display = 'block';
@@ -679,13 +730,6 @@
             setTimeout(() => { generateNewPracticeQuestion(); loadPracticeGameUI(); }, 1100);
         }
 
-        function switchPracticeMode(mode) {
-            practice.mode = mode;
-            document.querySelectorAll('.sub-nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-p-${mode}`).classList.add('active');
-            generateNewPracticeQuestion(); loadPracticeGameUI();
-        }
-
         function clickDragOpt(chosen, correct) {
             state.stats.total++;
             if(chosen === correct) { state.stats.correct++; document.getElementById('drop-box').innerText = chosen; playCorrectSound(); earnPracticeReward(); } 
@@ -752,6 +796,8 @@
             else if(quiz.mode === 'treasure') { quiz.list = tempPool.slice(0, 8); setupGameHeader('🎁 寶箱關', '雙倍金幣', `進度: 1/8`); } 
             else if(quiz.mode === 'star') { quiz.list = tempPool; setupGameHeader('⭐ 星星守護者', `生命: ❤️❤️❤️`, `已守護: 0 關`); }
             else if(quiz.mode === 'wrong_train') { setupGameHeader('🔴 錯題魔鬼特訓', '消除弱點', `進度: 1/${quiz.list.length}`); }
+            
+            startQuizBGM(); // 🎵 啟動測驗專屬背景音樂
             runNextQuestion();
         }
 
@@ -786,11 +832,17 @@
                 playCorrectSound(); 
                 showPraiseFX("🎉 太棒了");
                 if(quiz.combo >= 2) { let cb = document.getElementById('g-combo'); cb.innerText = `Combo ${quiz.combo} 🔥 衝啊！`; cb.style.opacity = 1; }
+                
+                // 連對時，背景音樂會自動即時重新計算速度（越播越快，越刺激！）
+                startQuizBGM(); 
             } else {
                 quiz.combo = 0; document.getElementById('g-combo').style.opacity = 0; 
                 playWrongSound(); 
                 showPraiseFX("❌ 算錯囉"); 
                 quiz.lives--;
+                
+                // 斷連擊，音樂速度恢復成標準慢速
+                startQuizBGM(); 
                 if(quiz.mode !== 'wrong_train') { if(!state.wrongQuestions.some(x => x.base === originalQ.base && x.mult === originalQ.mult)) state.wrongQuestions.push(originalQ); }
             }
             if(quiz.mode === 'wrong_train' && isCorrect) state.wrongQuestions = state.wrongQuestions.filter(x => !(x.base === originalQ.base && x.mult === originalQ.mult));
@@ -804,6 +856,7 @@
         }
 
         function finishQuizGame() {
+            stopQuizBGM(); // 🎵 測驗結束，光速關閉音樂
             clearInterval(quiz.timerInterval); document.getElementById('quiz-game-zone').style.display = 'none'; document.getElementById('quiz-menu-zone').style.display = 'block';
             let prize = quiz.correctCount * 1; let msg = `🏁 挑戰結束！你答對了 ${quiz.correctCount} 題，獲得金幣 +${prize} 個！`;
 
@@ -815,7 +868,7 @@
             state.coins += prize; syncUI(); saveProgressToCloud(); alert(msg);
         }
 
-        function exitQuiz() { if(confirm('確定要放棄離開本次測驗嗎？')) finishQuizGame(); }
+        function exitQuiz() { if(confirm('確定要放棄離開本次測驗嗎？')) { stopQuizBGM(); finishQuizGame(); } }
 
         // ================= 4. 錯題特訓模式 =================
         function startWrongQuestionTraining() {
